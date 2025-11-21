@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>暴造游戏发行孵化评估系统 v0.85</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #2c0b0e 0%, #8e0e00 100%);
+        --card-bg: #1e1e24;
+        --text-main: #fff;
+        --text-muted: #aaa;
+        --accent: #ffd700;
+        --accent-text: #2c0b0e;
+        --border-color: rgba(255, 215, 0, 0.3);
+        --button-bg: #333;
+        --grade-s: #ffd700;
+        --grade-a: #ff9f43;
+        --grade-b: #54a0ff;
+        --grade-f: #ff6b6b;
+        --border-radius: 8px;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .container {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        width: 100%;
+        max-width: 700px; /* 稍微加宽以容纳说明文字 */
+        padding: 40px 40px;
+        border: 1px solid var(--border-color);
+        position: relative;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+        height: 50px;
+      }
+
+      /* Title Input */
+      .title-container {
+        width: 60%;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+      }
+      .project-input {
+        background: transparent;
+        border: none;
+        color: var(--accent);
+        font-size: 2rem;
+        font-weight: 800;
+        width: 100%;
+        outline: none;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 5px;
+        font-family: inherit;
+      }
+      .project-input:focus {
+        border-bottom: 1px solid var(--accent);
+      }
+      .project-input::placeholder {
+        color: rgba(255, 215, 0, 0.3);
+        font-weight: normal;
+        font-size: 1.5rem;
+      }
+      .project-text-display {
+        display: none;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+        padding-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Switch */
+      .mode-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 40%;
+      }
+      .mode-switch {
+        display: flex;
+        background: #000;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 4px;
+        position: relative;
+        height: 32px;
+        align-items: center;
+      }
+      .mode-btn {
+        background: transparent;
+        border: none;
+        color: #888;
+        padding: 0 15px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        z-index: 2;
+        font-weight: 600;
+        transition: color 0.3s;
+      }
+      .mode-btn.active {
+        color: var(--accent-text);
+      }
+      .slider-bg {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        bottom: 4px;
+        width: calc(50% - 4px);
+        background: var(--accent);
+        border-radius: 4px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+      }
+      .mode-text-display {
+        display: none;
+        font-size: 1rem;
+        font-weight: bold;
+        color: var(--accent);
+        background: #333;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--accent);
+      }
+
+      /* Dimensions & Description */
+      .dimension-row {
+        margin-bottom: 25px;
+      }
+
+      .dim-header {
+        margin-bottom: 6px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #fff;
+      }
+
+      /* 新增：维度说明列表样式 */
+      .dim-desc {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 0;
+        margin-bottom: 10px;
+        padding-left: 1.2em;
+        line-height: 1.4;
+      }
+      .dim-desc li {
+        margin-bottom: 2px;
+      }
+
+      .score-selector {
+        display: flex;
+        gap: 4px;
+        height: 36px;
+      }
+      .score-btn {
+        flex: 1;
+        background: var(--button-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        color: #888;
+        font-size: 0.9rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .score-btn:hover {
+        background: #444;
+        color: #fff;
+      }
+      .score-btn.selected {
+        background: var(--accent);
+        color: var(--accent-text);
+        border-color: var(--accent);
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+      }
+      .score-btn.selected-low {
+        background: #e74c3c;
+        color: white;
+        border-color: #c0392b;
+        box-shadow: none;
+      }
+
+      /* Actions */
+      .action-area {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+      }
+      .main-btn {
+        background: linear-gradient(to bottom, #ffd700, #ffc000);
+        color: #2c0b0e;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #b58900;
+      }
+      .secondary-btn {
+        background: transparent;
+        border: 2px solid var(--accent);
+        color: var(--accent);
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        display: none;
+      }
+
+      /* Result */
+      .result-section {
+        display: none;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        text-align: center;
+      }
+      .total-score {
+        font-size: 4.5rem;
+        font-weight: 800;
+        color: #ffd700 !important;
+        text-shadow: 0 0 25px rgba(255, 215, 0, 0.2);
+        line-height: 1;
+        margin: 10px 0;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+      .grade-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 6px;
+        font-weight: 900;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .comment {
+        font-size: 1rem;
+        color: #ddd !important;
+        background: #333;
+        padding: 12px;
+        border-radius: 6px;
+        display: inline-block;
+        max-width: 80%;
+        line-height: 1.5;
+        border: 1px solid #444;
+      }
+
+      .footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.15);
+        user-select: none;
+      }
+
+      /* Config Panel */
+      #configPanel {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 100;
+        overflow-y: auto;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .config-box {
+        background: #1a1a1a;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #444;
+        color: #fff;
+      }
+      .config-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .config-row input {
+        background: #333;
+        color: #fff;
+        border: 1px solid #555;
+        padding: 4px;
+        text-align: center;
+        width: 60px;
+      }
+      .btn-save {
+        background: var(--accent);
+        color: #000;
+        width: 100%;
+        padding: 12px;
+        border: none;
+        font-weight: bold;
+        margin-top: 15px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="captureTarget">
+      <div class="header">
+        <div class="title-container">
+          <input
+            type="text"
+            class="project-input"
+            id="projectName"
+            placeholder="点击输入项目名称..."
+            maxlength="15"
+          />
+          <div class="project-text-display" id="projectNameDisplay"></div>
+        </div>
+        <div class="mode-container">
+          <div
+            class="mode-switch"
+            id="modeSwitchControl"
+            onclick="toggleMode()"
+          >
+            <div class="slider-bg" id="switchBg"></div>
+            <button class="mode-btn active" id="btnA">玩法驱动</button>
+            <button class="mode-btn" id="btnB">叙事驱动</button>
+          </div>
+          <div class="mode-text-display" id="modeTextDisplay"></div>
+        </div>
+      </div>
+
+      <div id="dimensions-container"></div>
+
+      <div class="action-area" data-html2canvas-ignore="true">
+        <button class="main-btn" id="btnCalculate" onclick="revealResult()">
+          生成评估报告
+        </button>
+        <button class="secondary-btn" id="btnSaveImg" onclick="saveImage()">
+          保存为图片
+        </button>
+      </div>
+
+      <div class="result-section" id="resultSection">
+        <div
+          style="
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          "
+        >
+          综合得分
+        </div>
+        <div class="total-score" id="finalScore">0.00</div>
+        <div id="gradeBadge" class="grade-badge">---</div>
+        <div>
+          <div class="comment" id="commentText">---</div>
+        </div>
+      </div>
+
+      <div class="footer" ondblclick="openConfig()">
+        © BOOOM Incubation Evaluation System v0.85
+      </div>
+    </div>
+
+    <!-- Config Panel -->
+    <div id="configPanel">
+      <div class="config-box">
+        <h2
+          style="
+            color: var(--accent);
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+          "
+        >
+          系统核心配置
+        </h2>
+        <h3 style="color: #aaa; font-size: 0.9rem; margin-top: 20px">
+          分值系数 (Curve)
+        </h3>
+        <div id="coeff-inputs"></div>
+        <h3 style="color: #aaa; font-size: 0.9rem; margin-top: 20px">
+          权重: 玩法驱动 (Mode A)
+        </h3>
+        <div id="weightA-inputs"></div>
+        <h3 style="color: #aaa; font-size: 0.9rem; margin-top: 20px">
+          权重: 叙事驱动 (Mode B)
+        </h3>
+        <div id="weightB-inputs"></div>
+        <button class="btn-save" onclick="saveConfig()">保存设置</button>
+        <button
+          class="btn-save"
+          style="background: #333; color: #fff; margin-top: 10px"
+          onclick="closeConfig()"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // --- Config & State ---
+      // 更新了权重和描述文案
+      let config = {
+        coeffs: {
+          10: 1.0,
+          9: 0.97,
+          8: 0.8,
+          7: 0.65,
+          6: 0.52,
+          5: 0.35,
+          4: 0.2,
+          3: 0.07,
+          2: 0.02,
+          1: 0.0,
+        },
+        dims: [
+          {
+            id: "core",
+            name: "核心玩法系统",
+            desc: [
+              "游戏的交互体验顺畅，正反馈自然",
+              "游戏拥有清晰的核心玩法，并且玩法循环有趣",
+              "游戏的关卡/流程设计扎实有趣，能产生持续游玩的动力",
+              "游戏系统深度足够，可以展望后续的游戏内容",
+            ],
+          },
+          {
+            id: "narrative",
+            name: "叙事与表现力",
+            desc: [
+              "游戏的文本或叙事表达易读且顺畅",
+              "游戏的表现力优异，能让人快速代入剧情",
+              "游戏中角色个性鲜明，逻辑真实可靠",
+              "游戏的节奏合理，情感体验平滑",
+            ],
+          },
+          {
+            id: "art",
+            name: "审美与艺术表达",
+            desc: [
+              "游戏的美术风格及艺术审美突出，极具辨识度",
+              "游戏的叙事与艺术表达结合融洽，不突兀",
+              "游戏的字体及 UI 易读，与美术风格统一",
+              "游戏的音效等细节质感优秀",
+            ],
+          },
+          {
+            id: "originality",
+            name: "游戏独创性",
+            desc: [
+              "游戏的玩法或风格具有独特性，在体验上会带给玩家新鲜感",
+              "游戏具备独特的亮点，能在同类型游戏中脱颖而出",
+              "游戏的题材相对小众，且能以独特的角度引人注意",
+              "你需要更多更小众的游戏案例才能形容出它",
+            ],
+          },
+          {
+            id: "team",
+            name: "团队沟通与项目能力",
+            desc: [
+              "开发者交流能力正常，对该项目的开发有明确的认知，团队氛围良好",
+              "游戏运行顺畅，优化到位，无明显Bug",
+              "游戏未来制作的路线相对清晰，团队能认知开发难度",
+              "游戏的项目规模，与预期的市场回报相对匹配",
+            ],
+          },
+          {
+            id: "biz",
+            name: "商业价值与市场潜力",
+            desc: [
+              "游戏的商品性强，教程引导合理，正反馈足够",
+              "游戏的受众人群清晰可辨，且规模较大，海外市场潜力足够",
+              "游戏具备转变为线上或移植多平台游戏的潜力",
+              "游戏的规模清晰，体量足够，回报可观",
+            ],
+          },
+          {
+            id: "intangible",
+            name: "无形资产",
+            desc: [
+              "游戏的卖相是否够好，有无服务玩家的意识",
+              "可能会引发争议和舆论风险<——>成为爆款的可能性",
+              "游戏的传播性如何，是否有能被大众讨论的爆点，是否更容易被直播的形式传播",
+              "游戏并不存在明显的跨文化障碍，存在成为大IP的可能",
+            ],
+          },
+        ],
+        // Updated Weights based on requirements
+        weightsA: [26, 12, 10, 13, 19, 14, 6], // Gameplay Mode
+        weightsB: [12, 26, 10, 13, 19, 14, 6], // Narrative Mode (Swapped 0 and 1)
+      };
+
+      let currentMode = "A";
+      let scores = [null, null, null, null, null, null, null];
+
+      const container = document.getElementById("dimensions-container");
+      const resultSection = document.getElementById("resultSection");
+      const btnCalculate = document.getElementById("btnCalculate");
+      const btnSaveImg = document.getElementById("btnSaveImg");
+
+      // --- Initialization ---
+      function init() {
+        renderInputs();
+      }
+
+      function renderInputs() {
+        container.innerHTML = "";
+        config.dims.forEach((dim, index) => {
+          const div = document.createElement("div");
+          div.className = "dimension-row";
+
+          // Generate Description List
+          const descHtml = dim.desc.map((d) => `<li>${d}</li>`).join("");
+
+          // Generate Buttons
+          let buttonsHtml = "";
+          for (let i = 1; i <= 10; i++) {
+            let activeClass = scores[index] === i ? "selected" : "";
+            if (activeClass && i <= 5) activeClass = "selected-low";
+            if (activeClass && i >= 6) activeClass = "selected";
+            buttonsHtml += `<div class="score-btn ${activeClass}" onclick="selectScore(${index}, ${i})">${i}</div>`;
+          }
+
+          div.innerHTML = `
+                <div class="dim-header">
+                    <span>${dim.name}</span>
+                </div>
+                <ul class="dim-desc">
+                    ${descHtml}
+                </ul>
+                <div class="score-selector">
+                    ${buttonsHtml}
+                </div>
+            `;
+          container.appendChild(div);
+        });
+      }
+
+      window.selectScore = (dimIndex, scoreVal) => {
+        scores[dimIndex] = scoreVal;
+        renderInputs();
+        resultSection.style.display = "none";
+        btnSaveImg.style.display = "none";
+        btnCalculate.style.display = "block";
+      };
+
+      window.toggleMode = () => {
+        currentMode = currentMode === "A" ? "B" : "A";
+        const switchBg = document.getElementById("switchBg");
+        const btnA = document.getElementById("btnA");
+        const btnB = document.getElementById("btnB");
+
+        if (currentMode === "A") {
+          switchBg.style.transform = "translateX(0)";
+          btnA.classList.add("active");
+          btnB.classList.remove("active");
+        } else {
+          switchBg.style.transform = "translateX(100%)";
+          btnA.classList.remove("active");
+          btnB.classList.add("active");
+        }
+        resultSection.style.display = "none";
+        btnSaveImg.style.display = "none";
+        btnCalculate.style.display = "block";
+      };
+
+      window.revealResult = () => {
+        if (scores.includes(null)) {
+          alert("请先完成所有 7 个维度的打分。");
+          return;
+        }
+        const res = calculateLogic();
+
+        // Updated to 2 decimal places
+        document.getElementById("finalScore").innerText = res.total.toFixed(2);
+
+        const badge = document.getElementById("gradeBadge");
+        const comment = document.getElementById("commentText");
+
+        badge.innerText = res.grade;
+        badge.style.background = res.color;
+        badge.style.color =
+          res.grade.includes("S") || res.grade.includes("A")
+            ? "#2c0b0e"
+            : "#fff";
+        comment.innerText = res.comment;
+        comment.style.borderColor = res.color;
+
+        resultSection.style.display = "block";
+        btnCalculate.style.display = "none";
+        btnSaveImg.style.display = "inline-block";
+      };
+
+      function calculateLogic() {
+        let total = 0;
+        const weights = currentMode === "A" ? config.weightsA : config.weightsB;
+        scores.forEach((score, i) => {
+          total += weights[i] * config.coeffs[score];
+        });
+        let grade, color, comment;
+        if (total >= 80) {
+          grade = "S 级";
+          color = "var(--grade-s)";
+          comment = "极具潜力！直接开聊努力抢下！等什么呢。";
+        } else if (total >= 65) {
+          grade = "A 级";
+          color = "var(--grade-a)";
+          comment = "优秀项目。虽有短板，但核心优势让它仍值得一试，值得考量。";
+        } else if (total >= 50) {
+          grade = "B 级";
+          color = "var(--grade-b)";
+          comment = "观察区。平庸，但你懂的，对独立项目而言，平庸意味着死亡。";
+        } else {
+          grade = "淘汰";
+          color = "var(--grade-f)";
+          comment = "分数过低。这里都不值得显示更多的文字。";
+        }
+        return { total, grade, color, comment };
+      }
+
+      // --- Robust Screenshot Function ---
+      window.saveImage = () => {
+        const target = document.getElementById("captureTarget");
+
+        const inputName = document.getElementById("projectName");
+        const displayName = document.getElementById("projectNameDisplay");
+
+        const modeControl = document.getElementById("modeSwitchControl");
+        const displayMode = document.getElementById("modeTextDisplay");
+
+        // Swap Name
+        const pName = inputName.value || "未命名项目";
+        displayName.innerText = pName;
+        inputName.style.display = "none";
+        displayName.style.display = "block";
+
+        // Swap Mode Switch
+        const modeText =
+          currentMode === "A" ? "类型：玩法驱动" : "类型：叙事驱动";
+        displayMode.innerText = modeText;
+        modeControl.style.display = "none";
+        displayMode.style.display = "block";
+
+        html2canvas(target, {
+          backgroundColor: "#1e1e24",
+          scale: 2,
+          useCORS: true,
+        })
+          .then((canvas) => {
+            inputName.style.display = "block";
+            displayName.style.display = "none";
+
+            modeControl.style.display = "flex";
+            displayMode.style.display = "none";
+
+            const link = document.createElement("a");
+            link.download = `评估报告_${pName}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+          })
+          .catch((err) => {
+            console.error(err);
+            inputName.style.display = "block";
+            displayName.style.display = "none";
+            modeControl.style.display = "flex";
+            displayMode.style.display = "none";
+            alert("图片生成失败，请重试");
+          });
+      };
+
+      // --- Config Panel ---
+      window.openConfig = () => {
+        document.getElementById("configPanel").style.display = "block";
+        const cDiv = document.getElementById("coeff-inputs");
+        cDiv.innerHTML = "";
+        for (let i = 10; i >= 1; i--) {
+          cDiv.innerHTML += `<div class="config-row"><span>分数 ${i}</span><input type="number" step="0.01" id="cfg-c-${i}" value="${config.coeffs[i]}"></div>`;
+        }
+        const renderW = (divId, arr, prefix) => {
+          const div = document.getElementById(divId);
+          div.innerHTML = "";
+          config.dims.forEach((d, i) => {
+            div.innerHTML += `<div class="config-row"><span>${d.name}</span><input type="number" id="${prefix}-${i}" value="${arr[i]}"></div>`;
+          });
+        };
+        renderW("weightA-inputs", config.weightsA, "cfg-wa");
+        renderW("weightB-inputs", config.weightsB, "cfg-wb");
+      };
+      window.closeConfig = () => {
+        document.getElementById("configPanel").style.display = "none";
+      };
+      window.saveConfig = () => {
+        for (let i = 1; i <= 10; i++)
+          config.coeffs[i] = parseFloat(
+            document.getElementById(`cfg-c-${i}`).value
+          );
+        config.dims.forEach((_, i) => {
+          config.weightsA[i] = parseFloat(
+            document.getElementById(`cfg-wa-${i}`).value
+          );
+          config.weightsB[i] = parseFloat(
+            document.getElementById(`cfg-wb-${i}`).value
+          );
+        });
+        closeConfig();
+        renderInputs();
+        alert("配置已更新");
+      };
+
+      init();
+    </script>
+  </body>
+</html>

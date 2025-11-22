@@ -210,18 +210,18 @@
     <!-- Additional Comments Section -->
     <div id="extraSection">
         <div class="extra-group">
-            <label class="extra-label">结论</label>
-            <input type="text" class="extra-input" id="extra-conclusion" maxlength="30" placeholder="仅基于投入和不投入做出结论">
+            <label class="extra-label">优点</label>
+            <input type="text" class="extra-input" id="extra-conclusion" maxlength="40" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
             <div class="text-display-placeholder" id="disp-conclusion"></div>
         </div>
         <div class="extra-group">
-            <label class="extra-label">优点</label>
-            <input type="text" class="extra-input" id="extra-pros" maxlength="40" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断。">
+            <label class="extra-label">缺点</label>
+            <input type="text" class="extra-input" id="extra-pros" maxlength="40" placeholder="该项目存在的明显缺点与潜在风险">
             <div class="text-display-placeholder" id="disp-pros"></div>
         </div>
         <div class="extra-group">
-            <label class="extra-label">缺点</label>
-            <input type="text" class="extra-input" id="extra-cons" maxlength="40" placeholder="该项目存在的明显缺点与潜在风险。">
+            <label class="extra-label">总结</label>
+            <input type="text" class="extra-input" id="extra-cons" maxlength="30" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
             <div class="text-display-placeholder" id="disp-cons"></div>
         </div>
         <div class="extra-group">
@@ -409,9 +409,9 @@
         const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
         scores.forEach((score, i) => { total += weights[i] * config.coeffs[score]; });
         let grade, color, comment;
-        if (total >= 80) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '极具潜力！核心长板突出，建议立即签约推进。'; }
-        else if (total >= 65) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '优秀项目。虽有短板，但核心优势足以支撑孵化。'; }
-        else if (total >= 50) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        if (total >= 85) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '极具潜力！核心长板突出，建议立即签约推进。'; }
+        else if (total >= 70) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '优秀项目。虽有短板，但核心优势足以支撑孵化。'; }
+        else if (total >= 55) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
         else { grade = '淘汰'; color = 'var(--grade-f)'; comment = '分数过低。核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }

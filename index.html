@@ -31,7 +31,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 40px 20px; /* 增加上下padding */
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
@@ -60,7 +60,6 @@
         .project-input:focus { border-bottom: 1px solid var(--accent); }
         .project-input::placeholder { color: rgba(255, 215, 0, 0.3); font-weight: normal; font-size: 1.5rem;}
         
-        /* 截图替身类：用于所有文本输入框在截图时的纯文本展示 */
         .text-display-placeholder {
             display: none; font-size: inherit; font-weight: inherit; color: inherit;
             white-space: pre-wrap; line-height: 1.5; width: 100%;
@@ -90,14 +89,10 @@
         /* Dimensions */
         .dimension-row { margin-bottom: 25px; }
         .dim-header { margin-bottom: 6px; font-size: 1.1rem; font-weight: bold; color: #fff; }
-        
-        /* 维度说明文字 */
         .dim-desc {
             font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
             margin-top: 0; margin-bottom: 10px; padding-left: 1.2em; line-height: 1.4;
         }
-
-        /* 维度下方的输入框 */
         .dim-note-input {
             width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1);
             color: var(--accent); font-size: 0.9rem; padding: 8px 0; margin-top: 8px; outline: none;
@@ -144,6 +139,7 @@
         .toggle-btn {
             background: #444; color: #fff; border: 1px solid #666;
             padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;
+            display: none; /* Initially Hidden */
         }
         .secondary-btn {
             background: transparent; border: 2px solid var(--accent); color: var(--accent);
@@ -203,11 +199,9 @@
         </div>
     </div>
 
-    <div id="dimensions-container">
-        <!-- Dimensions will be rendered here -->
-    </div>
+    <div id="dimensions-container"></div>
 
-    <!-- Additional Comments Section -->
+    <!-- Additional Comments Section (Initially Hidden) -->
     <div id="extraSection">
         <div class="extra-group">
             <label class="extra-label">优点</label>
@@ -220,7 +214,7 @@
             <div class="text-display-placeholder" id="disp-pros"></div>
         </div>
         <div class="extra-group">
-            <label class="extra-label">总结</label>
+            <label class="extra-label">结论</label>
             <input type="text" class="extra-input" id="extra-cons" maxlength="30" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
             <div class="text-display-placeholder" id="disp-cons"></div>
         </div>
@@ -232,7 +226,8 @@
     </div>
 
     <div class="action-area" data-html2canvas-ignore="true">
-        <button class="toggle-btn" onclick="toggleExtraSection()">+ 新增评价与提问</button>
+        <!-- Note: Buttons visibility managed by JS -->
+        <button class="toggle-btn" id="btnAddComment" onclick="toggleExtraSection()">+ 新增评价与提问</button>
         <button class="main-btn" id="btnCalculate" onclick="revealResult()">生成评估报告</button>
         <button class="secondary-btn" id="btnSaveImg" onclick="saveImage()">保存为图片</button>
     </div>
@@ -311,6 +306,7 @@
     const container = document.getElementById('dimensions-container');
     const resultSection = document.getElementById('resultSection');
     const btnCalculate = document.getElementById('btnCalculate');
+    const btnAddComment = document.getElementById('btnAddComment');
     const btnSaveImg = document.getElementById('btnSaveImg');
     const extraSection = document.getElementById('extraSection');
 
@@ -322,9 +318,7 @@
         config.dims.forEach((dim, index) => {
             const div = document.createElement('div');
             div.className = 'dimension-row';
-            
             const descHtml = dim.desc.map(d => `<li>${d}</li>`).join('');
-
             let buttonsHtml = '';
             for(let i=1; i<=10; i++) {
                 let activeClass = (scores[index] === i) ? 'selected' : '';
@@ -332,9 +326,6 @@
                 if(activeClass && i >= 6) activeClass = 'selected';
                 buttonsHtml += `<div class="score-btn ${activeClass}" onclick="selectScore(${index}, ${i})">${i}</div>`;
             }
-
-            // 新增：维度备注输入框 (Input + Display Placeholder)
-            // 注意：我们给 div 和 input 加上特定的 ID，方便截图时切换
             div.innerHTML = `
                 <div class="dim-header"><span>${dim.name}</span></div>
                 <ul class="dim-desc">${descHtml}</ul>
@@ -346,24 +337,37 @@
         });
     }
 
+    // --- State Reset Helper ---
+    function resetToUncalculatedState() {
+        resultSection.style.display = 'none';
+        
+        // Reset Buttons visibility
+        btnCalculate.style.display = 'block';
+        btnAddComment.style.display = 'none';
+        btnSaveImg.style.display = 'none';
+        
+        // Hide extra section to force a clean flow
+        extraSection.style.display = 'none';
+        extraSectionVisible = false;
+    }
+
     // --- Interaction ---
     window.selectScore = (dimIndex, scoreVal) => {
         scores[dimIndex] = scoreVal;
-        // 只更新按钮样式，保留input里的文字
+        
         const row = container.children[dimIndex];
         const buttons = row.querySelectorAll('.score-btn');
         buttons.forEach((btn, idx) => {
             let i = idx + 1;
-            btn.className = 'score-btn'; // reset
+            btn.className = 'score-btn'; 
             if(i === scoreVal) {
                 btn.classList.add('selected');
                 if(i<=5) btn.classList.add('selected-low');
             }
         });
         
-        resultSection.style.display = 'none';
-        btnSaveImg.style.display = 'none';
-        btnCalculate.style.display = 'block';
+        // User modified a score -> Result is invalid -> Reset state
+        resetToUncalculatedState();
     };
 
     window.toggleMode = () => {
@@ -378,9 +382,8 @@
             switchBg.style.transform = 'translateX(100%)';
             btnA.classList.remove('active'); btnB.classList.add('active');
         }
-        resultSection.style.display = 'none';
-        btnSaveImg.style.display = 'none';
-        btnCalculate.style.display = 'block';
+        // Mode changed -> Result is invalid -> Reset state
+        resetToUncalculatedState();
     };
 
     window.toggleExtraSection = () => {
@@ -390,6 +393,7 @@
 
     window.revealResult = () => {
         if(scores.includes(null)) { alert("请先完成所有 7 个维度的打分。"); return; }
+        
         const res = calculateLogic();
         document.getElementById('finalScore').innerText = res.total.toFixed(2);
         const badge = document.getElementById('gradeBadge');
@@ -399,8 +403,12 @@
         badge.style.color = (res.grade.includes('S') || res.grade.includes('A')) ? '#2c0b0e' : '#fff';
         comment.innerText = res.comment;
         comment.style.borderColor = res.color; 
+        
         resultSection.style.display = 'block';
+        
+        // SUCCESS STATE: Hide Generate, Show Actions
         btnCalculate.style.display = 'none';
+        btnAddComment.style.display = 'inline-block';
         btnSaveImg.style.display = 'inline-block';
     };
 
@@ -410,13 +418,13 @@
         scores.forEach((score, i) => { total += weights[i] * config.coeffs[score]; });
         let grade, color, comment;
         if (total >= 85) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '极具潜力！核心长板突出，建议立即签约推进。'; }
-        else if (total >= 70) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '优秀项目。虽有短板，但核心优势足以支撑孵化。'; }
-        else if (total >= 55) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        else if (total >= 68) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '优秀项目。虽有短板，但核心优势足以支撑孵化。'; }
+        else if (total >= 52) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
         else { grade = '淘汰'; color = 'var(--grade-f)'; comment = '分数过低。核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }
 
-    // --- 核心逻辑：智能截图 ---
+    // --- Screenshot Logic ---
     window.saveImage = () => {
         const target = document.getElementById('captureTarget');
         const inputName = document.getElementById('projectName');
@@ -424,26 +432,22 @@
         const modeControl = document.getElementById('modeSwitchControl');
         const displayMode = document.getElementById('modeTextDisplay');
         
-        // 1. 准备截图：交换显示
-        
-        // A. 项目名称
+        // 1. Swap Display
         const pName = inputName.value || "未命名项目";
         displayName.innerText = pName;
         inputName.style.display = 'none';
         displayName.style.display = 'block';
 
-        // B. 模式开关
         const modeText = currentMode === 'A' ? "类型：玩法驱动" : "类型：叙事驱动";
         displayMode.innerText = modeText;
         modeControl.style.display = 'none';
         displayMode.style.display = 'block';
 
-        // C. 隐藏所有维度说明 (.dim-desc)
+        // Hide Descriptions
         const allDescs = document.querySelectorAll('.dim-desc');
         allDescs.forEach(el => el.style.display = 'none');
 
-        // D. 处理每个维度的备注输入框
-        // 逻辑：如果有字，显示纯文本 div；如果没字，把 input 隐藏，保持干净
+        // Process Inputs
         const dimInputs = document.querySelectorAll('.dim-note-input');
         dimInputs.forEach((inp, idx) => {
             const disp = document.getElementById(`dim-disp-${idx}`);
@@ -452,23 +456,20 @@
                 disp.style.display = 'block';
                 inp.style.display = 'none';
             } else {
-                inp.style.display = 'none'; // 没写字就隐藏输入框
+                inp.style.display = 'none'; 
                 disp.style.display = 'none';
             }
         });
 
-        // E. 处理新增评价区域 (Extra Section)
-        // 逻辑同上，只处理显示的 input
+        // Process Extra Section
         const extraIds = ['extra-conclusion', 'extra-pros', 'extra-cons', 'extra-questions'];
         const extraDispIds = ['disp-conclusion', 'disp-pros', 'disp-cons', 'disp-questions'];
         
-        // 必须检查 extraSection 是否可见，如果用户没开这个区域，截图时也不显示
-        // 但如果用户开了，没填字的项，我们要隐藏
         if (extraSectionVisible) {
             extraIds.forEach((id, idx) => {
                 const inp = document.getElementById(id);
                 const disp = document.getElementById(extraDispIds[idx]);
-                const parentGroup = inp.parentElement; // .extra-group
+                const parentGroup = inp.parentElement; 
 
                 if (inp.value.trim() !== "") {
                     disp.innerText = inp.value;
@@ -476,38 +477,30 @@
                     inp.style.display = 'none';
                     parentGroup.style.display = 'block';
                 } else {
-                    // 如果没填字，这一整块(label+input)都隐藏，省空间
                     parentGroup.setAttribute('data-original-display', parentGroup.style.display);
                     parentGroup.style.display = 'none';
                 }
             });
         }
 
-        // 2. 执行截图
         html2canvas(target, {
             backgroundColor: '#1e1e24',
             scale: 2,
             useCORS: true
         }).then(canvas => {
-            // 3. 恢复现场 (Revert)
-            
-            // A & B Revert
+            // Revert
             inputName.style.display = 'block';
             displayName.style.display = 'none';
             modeControl.style.display = 'flex';
             displayMode.style.display = 'none';
-
-            // C Revert
             allDescs.forEach(el => el.style.display = 'block');
 
-            // D Revert (Dim Inputs)
             dimInputs.forEach((inp, idx) => {
                 const disp = document.getElementById(`dim-disp-${idx}`);
                 inp.style.display = 'block';
                 disp.style.display = 'none';
             });
 
-            // E Revert (Extra Section)
             if (extraSectionVisible) {
                 extraIds.forEach((id, idx) => {
                     const inp = document.getElementById(id);
@@ -516,11 +509,10 @@
                     
                     inp.style.display = 'block';
                     disp.style.display = 'none';
-                    parentGroup.style.display = 'block'; // 恢复显示
+                    parentGroup.style.display = 'block'; 
                 });
             }
 
-            // 下载
             const link = document.createElement('a');
             link.download = `评估报告_${pName}.png`;
             link.href = canvas.toDataURL();
@@ -529,7 +521,7 @@
         }).catch(err => {
             console.error(err);
             alert("截图失败，请刷新重试");
-            location.reload(); // 简单粗暴恢复现场防止UI卡死
+            location.reload(); 
         });
     };
 
@@ -558,7 +550,6 @@
             config.weightsB[i] = parseFloat(document.getElementById(`cfg-wb-${i}`).value);
         });
         closeConfig();
-        // 重新渲染以更新可能的权重逻辑（虽然权重不显示在UI上，但为了逻辑一致性）
         renderInputs();
         alert("配置已更新");
     };

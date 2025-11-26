@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v1.0</title>
+    <title>BOOOM 游戏发行孵化评估系统 v1.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -58,7 +58,14 @@
         }
         .dash-title { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
         .user-info { color: var(--text-muted); font-size: 0.9rem; }
-        .user-highlight { color: #fff; font-weight: bold; margin-right: 10px; }
+        .user-highlight { color: #fff; font-weight: bold; margin-right: 5px; }
+        
+        /* Logout Button Style */
+        .logout-link {
+            cursor: pointer; color: var(--grade-f); margin-left: 10px; 
+            font-size: 0.8rem; text-decoration: underline; opacity: 0.8;
+        }
+        .logout-link:hover { opacity: 1; }
 
         .project-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
@@ -78,10 +85,6 @@
         .p-card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #fff; }
         .p-card-score { font-size: 2.5rem; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
         .p-card-meta { font-size: 0.8rem; color: #666; display: flex; justify-content: space-between; }
-        .p-badge { 
-            position: absolute; top: 15px; right: 15px; font-size: 0.8rem; 
-            padding: 2px 8px; border-radius: 4px; font-weight: bold;
-        }
 
         /* New Project Card */
         .p-card.new {
@@ -106,7 +109,7 @@
         }
         .back-link:hover { color: var(--accent); }
 
-        /* Status Bar & Tabs */
+        /* Tabs */
         .view-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #000; padding: 4px; border-radius: 8px;}
         .tab-btn {
             flex: 1; padding: 8px; color: #666; cursor: pointer; border-radius: 6px; 
@@ -170,8 +173,6 @@
             box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
         }
         .score-btn.selected-low { background: #e74c3c; color: white; border-color: #c0392b; box-shadow: none; }
-        
-        /* Team view highlight */
         .score-btn.team-avg-highlight { border: 2px solid var(--grade-b); color: #fff; opacity: 1; }
 
         /* Extra Section */
@@ -207,7 +208,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <div style="font-size:1.5rem; font-weight:bold; color:#FFD700; margin-bottom:10px;">BOOOM</div>
-        <div style="margin-bottom:20px; color:#aaa;">BOOOM游戏发行孵化评估系统 v1.0</div>
+        <div style="margin-bottom:20px; color:#aaa;">暴造游戏发行孵化评估系统 v1.1</div>
         <input type="text" id="loginName" class="login-input" placeholder="请输入你的名字/昵称" maxlength="10">
         <button class="primary-btn" onclick="handleLogin()">进入系统</button>
     </div>
@@ -217,8 +218,11 @@
 <div id="dashboardSection">
     <div class="dash-header">
         <div>
-            <div class="dash-title">项目主菜单</div>
-            <div class="user-info">当前用户: <span id="dashUser" class="user-highlight"></span></div>
+            <div class="dash-title">BOOOM游戏评估系统</div>
+            <div class="user-info">
+                当前用户: <span id="dashUser" class="user-highlight"></span>
+                <span class="logout-link" onclick="handleLogout()">[退出]</span>
+            </div>
         </div>
     </div>
     <div class="project-grid" id="projectGrid">
@@ -233,7 +237,7 @@
 <!-- 3. Main App Section -->
 <div id="appSection">
     <div class="container" id="captureTarget">
-        <div class="back-link" onclick="goBackToDash()">← 返回主菜单</div>
+        <div class="back-link" onclick="goBackToDash()">← 返回首页</div>
 
         <div class="header">
             <div class="project-title-display" id="displayProjectName"></div>
@@ -248,13 +252,12 @@
 
         <div class="view-tabs">
             <div class="tab-btn active" id="tabMy" onclick="switchTab('my')">我的评分</div>
-            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合 (仅可查看)</div>
+            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合分 (查看)</div>
         </div>
 
         <div id="dimensions-container"></div>
 
         <div id="extraSection">
-            <!-- ID 和 文案 已回滚至 v0.9 正确版本 -->
             <div class="extra-group">
                 <label class="extra-label">优点</label>
                 <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
@@ -275,7 +278,7 @@
 
         <div class="action-area" data-html2canvas-ignore="true">
             <button class="toggle-btn" id="btnAddComment" onclick="toggleExtraSection()">+ 新增评价与提问</button>
-            <button class="main-btn" id="btnCalculate" onclick="calculateLocalResult()">得出评分</button>
+            <button class="main-btn" id="btnCalculate" onclick="calculateLocalResult()">完成评分</button>
             
             <button class="cloud-btn" id="btnUpload" onclick="uploadToCloud()">☁️ 提交并同步</button>
             <button class="secondary-btn" id="btnSaveImg" onclick="saveImage()">保存报告图片</button>
@@ -288,7 +291,7 @@
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v1.0</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v1.1</div>
     </div>
 </div>
 
@@ -297,7 +300,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // ⚠️ REPLACE THIS WITH YOUR OWN FIREBASE CONFIG ⚠️
+    // ⚠️⚠️⚠️ 务必在此处填入你自己的 Firebase 密钥 ⚠️⚠️⚠️
     const firebaseConfig = {
         apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
         authDomain: "booom-evaluator.firebaseapp.com",
@@ -313,10 +316,9 @@
     // --- State & Config ---
     let currentUser = "";
     let currentProject = "";
-    let currentTab = "my"; // 'my' or 'team'
+    let currentTab = "my";
     let teamData = null; 
 
-    // Config Restored to v0.9/v5.1 Version
     let config = {
         coeffs: { 10: 1.00, 9: 0.97, 8: 0.80, 7: 0.65, 6: 0.52, 5: 0.35, 4: 0.20, 3: 0.07, 2: 0.02, 1: 0.00 },
         dims: [
@@ -346,13 +348,25 @@
         initDashboard();
     }
 
+    // Attach to window so HTML can call it
     window.handleLogin = () => {
         const name = document.getElementById('loginName').value.trim();
-        if(!name) return alert("请输入ID");
+        if(!name) return alert("请输入名字");
         currentUser = name;
         localStorage.setItem('booom_user', name);
         document.getElementById('loginOverlay').style.display = 'none';
         initDashboard();
+    };
+
+    // New Logout Function
+    window.handleLogout = () => {
+        if(confirm("确定要退出当前用户吗？")) {
+            localStorage.removeItem('booom_user');
+            currentUser = "";
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('loginName').value = "";
+        }
     };
 
     function initDashboard() {
@@ -363,17 +377,20 @@
         const q = query(collection(db, "projects"), orderBy("lastUpdate", "desc"));
         onSnapshot(q, (snapshot) => {
             const grid = document.getElementById('projectGrid');
-            // Keep the "New Project" card
-            const newCard = grid.lastElementChild; 
-            grid.innerHTML = ''; 
+            const newCard = grid.querySelector('.p-card.new'); // Keep reference to new card
             
+            // Clear existing projects but keep 'new' card structure in memory
+            const cards = Array.from(grid.children);
+            cards.forEach(c => {
+                if(!c.classList.contains('new')) c.remove();
+            });
+
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const card = document.createElement('div');
                 card.className = 'p-card';
                 card.onclick = () => loadProject(doc.id);
                 
-                // Score Color
                 const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
                 let color = '#888';
                 if(score >= 85) color = 'var(--grade-s)';
@@ -381,7 +398,6 @@
                 else if(score >= 52) color = 'var(--grade-b)';
                 else if(score < 52 && score > 0) color = 'var(--grade-f)';
 
-                // Time formatting
                 let timeStr = "-";
                 if(data.lastUpdate) {
                     const date = data.lastUpdate.toDate();
@@ -396,9 +412,9 @@
                         <span>🕒 ${timeStr}</span>
                     </div>
                 `;
-                grid.appendChild(card);
+                // Insert before the last card (New Project card)
+                grid.insertBefore(card, grid.lastElementChild);
             });
-            grid.appendChild(newCard); // Add "New" card back
         });
     }
 
@@ -424,12 +440,16 @@
     window.goBackToDash = () => {
         document.getElementById('appSection').style.display = 'none';
         document.getElementById('dashboardSection').style.display = 'block';
-        // Cleanup listeners if needed (optional for simple apps)
-        location.reload(); // Simple refresh to clear state
+        // Reset state
+        currentTab = 'my';
+        teamData = null;
+        myScores = [null, null, null, null, null, null, null];
+        resetToUncalculatedState();
+        document.getElementById('tabMy').click(); // Switch back to My tab
     };
 
 
-    // --- Core App Logic (Same as before but refined) ---
+    // --- Core App Logic ---
 
     function renderInputs() {
         const container = document.getElementById('dimensions-container');
@@ -540,16 +560,16 @@
         let total = 0;
         const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
         scoreArray.forEach((score, i) => { 
-            const intScore = Math.round(score); // Use closest integer coefficient
+            const intScore = Math.round(score); 
             const safeScore = Math.max(1, Math.min(10, intScore));
             total += weights[i] * config.coeffs[safeScore]; 
         });
         
         let grade, color, comment;
-        if (total >= 85) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '卧槽！天降项目，签啊！等什么呢'; }
-        else if (total >= 68) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目。开聊！'; }
+        if (total >= 85) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
+        else if (total >= 68) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
         else if (total >= 52) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = '淘汰'; color = 'var(--grade-f)'; comment = '分数过低。核心竞争力不足或致命短板过多。'; }
+        else { grade = '淘汰'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }
 

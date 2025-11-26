@@ -3,83 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v2.1</title>
+    <title>BOOOM 游戏发行孵化评估系统 v2.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            /* BOOOM 品牌色：明黄、朱红、黑 */
-            --bg-dark: #050505;
-            --bg-card: rgba(20, 20, 20, 0.95);
-            --yellow: #FFD700;
-            --red: #FF2A2A; /* 朱红 */
-            --gradient-main: linear-gradient(135deg, var(--yellow) 0%, var(--red) 100%);
-            --gradient-hover: linear-gradient(135deg, #ffe033 0%, #ff5555 100%);
+            /* 工业科幻亮色系 */
+            --bg-color: #F0F2F5;
+            --card-bg: #FFFFFF;
             
-            --text-main: #ffffff;
-            --text-dim: #888888;
+            /* 核心三色 */
+            --black: #111111;
+            --yellow: #FFD700; /* 明黄 - 主高亮 */
+            --red: #FF3333;    /* 朱红 - 辅助/警示 */
             
-            --border-glow: 0 0 10px rgba(255, 42, 42, 0.2);
-            --tech-border: 1px solid rgba(255, 255, 255, 0.15);
+            --text-main: #111111;
+            --text-dim: #666666;
+            
+            --border: 1px solid #111111;
+            --border-thick: 2px solid #111111;
+            
+            --grade-s: #FFD700;
+            --grade-a: #FF3333;
+            --grade-b: #4D94FF;
+            --grade-f: #999999;
         }
 
         body {
             margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
-            background-color: var(--bg-dark);
-            /* 科技感背景网格 */
+            background-color: var(--bg-color);
+            /* 浅灰色网格背景 */
             background-image: 
-                linear-gradient(rgba(255, 42, 42, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 42, 42, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+                linear-gradient(#E0E0E0 1px, transparent 1px),
+                linear-gradient(90deg, #E0E0E0 1px, transparent 1px);
+            background-size: 30px 30px;
             color: var(--text-main);
             min-height: 100vh; padding: 40px 20px; box-sizing: border-box;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- 通用组件：切角边框与科技感 --- */
+        /* --- 科技装饰组件 --- */
+        .tech-deco { position: absolute; background: var(--black); z-index: 2; }
         .tech-box {
-            background: var(--bg-card);
-            border: var(--tech-border);
-            /* 右下角切角 */
-            clip-path: polygon(
-                0 0, 
-                100% 0, 
-                100% calc(100% - 20px), 
-                calc(100% - 20px) 100%, 
-                0 100%
-            );
+            background: var(--card-bg);
+            border: var(--border);
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.1); /* 硬投影 */
             position: relative;
         }
-        /* 装饰性左边框 */
+        /* 左上角装饰 */
         .tech-box::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            background: var(--gradient-main);
+            content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
+            background: var(--yellow); border: 1px solid #000; z-index: 5;
+        }
+        /* 右下角切角效果通过伪元素模拟 */
+        .tech-box::after {
+            content: ''; position: absolute; bottom: -6px; right: -6px; 
+            width: 0; height: 0; 
+            border-left: 15px solid transparent;
+            border-bottom: 15px solid var(--black);
         }
 
         /* --- 1. Login Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); 
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            padding: 50px; width: 320px; text-align: center;
-            box-shadow: 0 0 30px rgba(255, 42, 42, 0.1);
+            padding: 60px 40px; width: 340px; text-align: center;
+            border: var(--border-thick); background: #fff;
+            box-shadow: 10px 10px 0px var(--yellow);
         }
         .login-input {
-            width: 100%; padding: 15px; margin: 30px 0; background: #000;
-            border: 1px solid #444; color: var(--yellow); font-size: 1.1rem; font-weight: bold;
+            width: 100%; padding: 15px; margin: 30px 0; background: #fff;
+            border: 2px solid #eee; color: var(--black); font-size: 1.1rem; font-weight: bold;
             text-align: center; outline: none; transition: all 0.3s;
         }
-        .login-input:focus { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+        .login-input:focus { border-color: var(--black); border-bottom: 4px solid var(--yellow); }
         
         .primary-btn {
-            background: var(--gradient-main); color: #000; border: none;
+            background: var(--yellow); color: var(--black); border: var(--border);
             padding: 15px 0; width: 100%; font-weight: 900; cursor: pointer;
             font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-            transition: filter 0.2s;
+            box-shadow: 4px 4px 0px var(--black);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
-        .primary-btn:hover { filter: brightness(1.2); }
+        .primary-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--black); }
+        .primary-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--black); }
 
         /* --- 2. Dashboard (Lobby) --- */
         #dashboardSection { display: none; max-width: 1000px; width: 100%; }
@@ -87,16 +96,22 @@
         .dash-header {
             display: flex; justify-content: space-between; align-items: flex-end;
             margin-bottom: 40px; padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 2px solid var(--black);
         }
         .dash-title { 
-            font-size: 2.5rem; font-weight: 900; 
-            background: var(--gradient-main); -webkit-background-clip: text; color: transparent;
-            letter-spacing: -1px;
+            font-size: 2.2rem; font-weight: 900; color: var(--black);
+            letter-spacing: -1px; position: relative;
         }
-        .user-info { color: var(--text-dim); font-size: 0.9rem; font-family: monospace; }
-        .user-highlight { color: var(--yellow); font-weight: bold; margin-right: 10px; }
-        .logout-link { cursor: pointer; text-decoration: underline; margin-left: 10px; color: var(--red); }
+        /* 标题下的黄色高亮条 */
+        .dash-title::after {
+            content: ''; position: absolute; bottom: 5px; left: 0; width: 100%; height: 12px;
+            background: var(--yellow); opacity: 0.6; z-index: -1; transform: skewX(-10deg);
+        }
+
+        .user-info { color: var(--text-dim); font-size: 0.9rem; font-family: monospace; font-weight: bold; }
+        .user-highlight { background: var(--black); color: #fff; padding: 2px 6px; margin-right: 5px; }
+        .logout-link { cursor: pointer; text-decoration: none; margin-left: 10px; color: var(--red); font-weight: bold; border-bottom: 2px solid transparent; }
+        .logout-link:hover { border-color: var(--red); }
 
         .project-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
@@ -104,28 +119,37 @@
 
         /* Card Style */
         .p-card {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            padding: 25px; cursor: pointer; transition: all 0.3s ease;
+            background: #fff; border: var(--border);
+            padding: 25px; cursor: pointer; transition: all 0.2s ease;
             display: flex; flex-direction: column; justify-content: space-between;
-            min-height: 140px; position: relative; overflow: hidden;
+            min-height: 150px; position: relative; overflow: hidden;
         }
-        /* 只有左边有朱红条 */
-        .p-card::after {
-            content: ''; position: absolute; left: 0; top: 0; width: 3px; height: 100%;
-            background: var(--red); transition: width 0.3s;
+        /* 悬停效果：左边红条，阴影变黄 */
+        .p-card::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 0px; height: 100%;
+            background: var(--red); transition: width 0.2s;
         }
-        .p-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); }
-        .p-card:hover::after { width: 6px; background: var(--yellow); }
+        .p-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 8px 8px 0px var(--yellow);
+            border-color: var(--black);
+        }
+        .p-card:hover::before { width: 6px; }
         
-        .p-card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #fff; }
-        .p-card-score { font-size: 2.2rem; font-weight: 900; color: var(--yellow); align-self: flex-end;}
-        .p-card-meta { font-size: 0.75rem; color: #666; font-family: monospace; margin-top: 10px;}
+        .p-card-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 15px; color: var(--black); line-height: 1.2;}
+        .p-card-score { font-size: 2.5rem; font-weight: 900; color: var(--black); align-self: flex-end; position: relative; z-index: 1;}
+        /* 分数背后的装饰圆 */
+        .p-card-score::before {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background: var(--yellow); border-radius: 50%; z-index: -1; opacity: 0.5;
+        }
+        
+        .p-card-meta { font-size: 0.75rem; color: #888; font-family: monospace; margin-top: 10px; font-weight: bold;}
 
         .p-card.new {
-            border: 2px dashed #333; background: transparent; align-items: center; justify-content: center; color: #444;
+            border: 2px dashed #ccc; background: transparent; align-items: center; justify-content: center; color: #aaa; box-shadow: none;
         }
-        .p-card.new:hover { border-color: var(--yellow); color: var(--yellow); transform: none; }
-        .p-card.new::after { display: none; }
+        .p-card.new:hover { border-color: var(--yellow); color: var(--black); background: rgba(255, 215, 0, 0.1); box-shadow: none; }
         .plus-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
 
 
@@ -133,168 +157,180 @@
         #appSection { display: none; width: 100%; max-width: 700px; margin: 0 auto; }
 
         .container {
-            width: 100%; padding: 50px; box-sizing: border-box;
+            background: #fff; width: 100%; padding: 50px; box-sizing: border-box;
+            border: var(--border); box-shadow: 15px 15px 0px rgba(0,0,0,0.05);
         }
 
         .back-link {
             display: inline-block; margin-bottom: 20px; color: var(--text-dim); 
-            cursor: pointer; font-size: 0.85rem; font-family: monospace; 
-            border: 1px solid #333; padding: 5px 10px; transition: all 0.2s;
+            cursor: pointer; font-size: 0.85rem; font-family: monospace; font-weight: bold;
+            background: #eee; padding: 5px 10px; transition: all 0.2s;
         }
-        .back-link:hover { border-color: var(--yellow); color: var(--yellow); }
+        .back-link:hover { background: var(--black); color: var(--yellow); }
 
         /* Header */
         .header {
             display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px;
+            margin-bottom: 40px; border-bottom: 4px solid var(--black); padding-bottom: 20px;
         }
         .project-title-display {
-            font-size: 2rem; font-weight: 900; color: #fff; width: 60%; line-height: 1.1;
+            font-size: 2.2rem; font-weight: 900; color: var(--black); width: 60%; line-height: 1.1;
+            text-transform: uppercase;
         }
         
-        .text-display-placeholder {
-            display: none; font-size: inherit; font-weight: inherit; color: inherit;
-        }
+        .text-display-placeholder { display: none; font-size: inherit; font-weight: inherit; color: inherit; }
 
-        /* Mode Switch */
+        /* Mode Switch - Tech Style */
         .mode-container { width: 40%; display: flex; flex-direction: column; align-items: flex-end; }
         .mode-switch {
-            display: flex; background: #000; border: 1px solid #444;
-            padding: 2px; height: 34px; align-items: center; width: fit-content;
+            display: flex; background: #eee; border: 1px solid var(--black);
+            padding: 3px; height: 36px; align-items: center; width: fit-content;
+            position: relative; box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
         }
         .mode-btn {
-            background: transparent; border: none; color: #666; padding: 0 15px;
-            cursor: pointer; font-size: 0.8rem; z-index: 2; font-weight: bold; transition: color 0.3s;
+            background: transparent; border: none; color: #999; padding: 0 15px;
+            cursor: pointer; font-size: 0.85rem; z-index: 2; font-weight: 800; transition: color 0.3s;
         }
-        .mode-btn.active { color: #000; }
+        .mode-btn.active { color: var(--black); }
         .slider-bg {
             position: absolute; height: 30px; width: 50%;
-            background: var(--gradient-main); z-index: 1;
+            background: var(--yellow); border: 1px solid var(--black); 
+            z-index: 1; box-sizing: border-box;
         }
         .mode-text-display {
-            display: none; font-size: 1rem; font-weight: bold; color: var(--yellow);
-            background: #000; padding: 5px 10px; border: 1px solid var(--yellow);
+            display: none; font-size: 1rem; font-weight: 900; color: var(--black);
+            background: var(--yellow); padding: 5px 10px; border: 2px solid var(--black);
         }
 
         /* Tabs */
-        .view-tabs { display: flex; gap: 10px; margin-bottom: 40px; }
+        .view-tabs { display: flex; gap: 15px; margin-bottom: 40px; }
         .tab-btn {
-            flex: 1; padding: 12px; color: #666; cursor: pointer; background: #111;
-            font-weight: bold; font-size: 0.9rem; border: 1px solid #222; text-align: center;
-            transition: all 0.2s;
+            flex: 1; padding: 12px; color: #999; cursor: pointer; background: #fff;
+            font-weight: 800; font-size: 0.9rem; border: 2px solid #eee; text-align: center;
+            transition: all 0.2s; text-transform: uppercase;
         }
         .tab-btn.active { 
-            background: transparent; color: var(--yellow); border: 1px solid var(--yellow);
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+            background: var(--yellow); color: var(--black); border-color: var(--black);
+            transform: translateY(-2px); box-shadow: 3px 3px 0px var(--black);
         }
         .tab-btn.active-team { 
-            background: transparent; color: var(--red); border: 1px solid var(--red); 
+            background: var(--black); color: #fff; border-color: var(--black);
+            transform: translateY(-2px); box-shadow: 3px 3px 0px var(--red);
         }
 
         /* Dimensions */
-        .dimension-row { margin-bottom: 35px; }
+        .dimension-row { margin-bottom: 40px; }
         .dim-header { 
-            margin-bottom: 8px; font-size: 1.1rem; font-weight: 700; color: #fff; 
+            margin-bottom: 10px; font-size: 1.2rem; font-weight: 800; color: var(--black); 
             display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--yellow); padding-left: 10px;
         }
-        .team-avg-display { font-size: 0.85rem; color: var(--red); font-family: monospace; }
+        .team-avg-display { font-size: 0.85rem; color: var(--red); font-family: monospace; background: #eee; padding: 2px 6px;}
         
-        .dim-desc { font-size: 0.8rem; color: #666; margin-top: 0; margin-bottom: 12px; line-height: 1.5; }
+        .dim-desc { font-size: 0.85rem; color: #555; margin-top: 0; margin-bottom: 12px; line-height: 1.5; padding-left: 15px;}
         
-        /* Input styling - Gradient Bottom Border */
+        /* Input styling - Industrial Line */
         .dim-note-input {
-            width: 100%; background: transparent; border: none; 
-            border-bottom: 1px solid #333; color: var(--yellow); 
-            font-size: 0.9rem; padding: 8px 0; margin-top: 10px; outline: none;
-            font-family: inherit; transition: all 0.3s;
+            width: 100%; background: #FAFAFA; border: none; 
+            border-bottom: 2px solid #ddd; color: var(--black); 
+            font-size: 0.95rem; padding: 10px; margin-top: 5px; outline: none;
+            font-family: inherit; transition: all 0.3s; font-weight: 500;
         }
         .dim-note-input:focus { 
-            border-bottom: 1px solid var(--red); 
-            background: linear-gradient(90deg, rgba(255,42,42,0.1), transparent);
+            border-bottom-color: var(--black); background: #FFF;
+            border-left: 3px solid var(--yellow);
         }
-        .dim-note-input::placeholder { color: #444; font-style: italic; }
+        .dim-note-input::placeholder { color: #ccc; font-style: normal; font-weight: normal;}
 
-        /* Score Buttons - Tech Squares */
-        .score-selector { display: flex; gap: 4px; height: 32px; margin-bottom: 5px;}
+        /* Score Buttons - Technical Grid */
+        .score-selector { display: flex; gap: 5px; height: 36px; margin-bottom: 5px;}
         .score-btn {
-            flex: 1; background: #111; border: 1px solid #333;
-            color: #555; font-size: 0.8rem; font-weight: bold;
+            flex: 1; background: #fff; border: 1px solid #ccc;
+            color: #aaa; font-size: 0.9rem; font-weight: 800;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.1s;
         }
-        .score-btn:hover { background: #222; color: #fff; border-color: #666; }
+        .score-btn:hover { border-color: var(--black); color: var(--black); transform: translateY(-2px);}
         
-        /* Active State: Yellow for High, Red for Low */
         .score-btn.selected {
-            background: var(--yellow); color: #000; border-color: var(--yellow);
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+            background: var(--yellow); color: var(--black); border: 1px solid var(--black);
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.1); transform: translateY(-3px);
         }
         .score-btn.selected-low { 
-            background: var(--red); color: #fff; border-color: var(--red);
-            box-shadow: 0 0 8px rgba(255, 42, 42, 0.4);
+            background: var(--red); color: #fff; border-color: var(--black);
         }
-        .score-btn.team-avg-highlight { border: 2px solid #fff; z-index: 2; transform: scale(1.1);}
+        .score-btn.team-avg-highlight { 
+            border: 2px solid var(--black); position: relative; 
+        }
+        .score-btn.team-avg-highlight::after {
+            content:''; position: absolute; width: 4px; height: 4px; background: var(--black); border-radius: 50%; bottom: 2px;
+        }
 
         /* Extra Section */
-        #extraSection { display: none; margin-top: 50px; padding-top: 30px; border-top: 1px dashed #333; }
+        #extraSection { display: none; margin-top: 50px; padding-top: 30px; border-top: 2px dashed #ddd; }
         .extra-group { margin-bottom: 25px; }
         .extra-label { 
-            display: inline-block; color: #000; background: var(--yellow);
-            font-size: 0.8rem; padding: 2px 8px; margin-bottom: 10px; font-weight: bold; 
+            display: inline-block; color: var(--black); background: var(--yellow);
+            font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; font-weight: 900; 
+            text-transform: uppercase; border: 1px solid var(--black);
         }
         .extra-input {
-            width: 100%; background: #000; border: 1px solid #333;
-            color: #ccc; padding: 15px; font-size: 0.95rem; font-family: inherit;
+            width: 100%; background: #fff; border: 2px solid #eee;
+            color: var(--black); padding: 15px; font-size: 1rem; font-family: inherit;
             box-sizing: border-box; outline: none; transition: border-color 0.3s;
         }
-        .extra-input:focus { border-color: var(--red); }
+        .extra-input:focus { border-color: var(--black); }
         textarea.extra-input { resize: vertical; min-height: 100px; }
 
         /* Actions */
-        .action-area { margin-top: 50px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
+        .action-area { margin-top: 50px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;}
         
         .btn {
-            padding: 12px 25px; font-weight: 900; cursor: pointer; font-size: 0.9rem;
-            border: none; text-transform: uppercase; letter-spacing: 1px;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: transform 0.1s, filter 0.2s;
+            padding: 14px 30px; font-weight: 900; cursor: pointer; font-size: 0.95rem;
+            border: 1px solid var(--black); text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 4px 4px 0px var(--black);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
         
-        .btn-main { background: var(--gradient-main); color: #000; }
-        .btn-main:hover { filter: brightness(1.1); }
+        .btn-main { background: var(--yellow); color: var(--black); }
+        .btn-main:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--black); }
+        .btn-main:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--black); }
         
-        .btn-cloud { background: #222; color: var(--yellow); border: 1px solid var(--yellow); display: none;}
-        .btn-cloud:hover { background: var(--yellow); color: #000; }
+        .btn-cloud { background: var(--black); color: #fff; display: none;}
+        .btn-cloud:hover { background: #333; }
 
-        .btn-sec { background: transparent; border: 1px solid #444; color: #888; display: none;}
-        .btn-sec:hover { border-color: #fff; color: #fff; }
+        .btn-sec { background: #fff; border: 1px solid #ccc; color: #666; display: none; box-shadow: none;}
+        .btn-sec:hover { border-color: var(--black); color: var(--black); }
 
-        .toggle-btn { background: transparent; color: var(--text-dim); border: 1px solid #333; display: none;}
-        .toggle-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+        .toggle-btn { background: transparent; color: var(--black); border: 1px dashed var(--black); display: none; box-shadow: none;}
+        .toggle-btn:hover { background: #eee; }
 
-        /* Result */
+        /* Result - Industrial Stamp Style */
         .result-section { 
-            display: none; margin-top: 50px; padding-top: 40px; 
-            border-top: 2px solid #fff; text-align: center; 
+            display: none; margin-top: 60px; padding-top: 40px; 
+            border-top: 4px solid var(--black); text-align: center; 
+            background-image: repeating-linear-gradient(45deg, #f9f9f9 0, #f9f9f9 10px, #fff 10px, #fff 20px);
         }
         .total-score { 
-            font-size: 6rem; font-weight: 900; 
-            background: var(--gradient-main); -webkit-background-clip: text; color: transparent;
-            line-height: 0.9; margin: 20px 0 10px 0; letter-spacing: -3px;
+            font-size: 7rem; font-weight: 900; color: var(--black);
+            line-height: 0.9; margin: 20px 0 10px 0; letter-spacing: -4px;
+            text-shadow: 4px 4px 0px var(--yellow);
         }
         .grade-badge { 
-            display: inline-block; padding: 5px 20px; background: #fff; color: #000;
-            font-weight: 900; font-size: 1.5rem; margin-bottom: 20px; 
+            display: inline-block; padding: 8px 25px; background: var(--black); color: #fff;
+            font-weight: 900; font-size: 1.8rem; margin-bottom: 25px; 
             text-transform: uppercase; letter-spacing: 2px;
+            transform: rotate(-2deg); /* Stamp effect */
         }
         .comment { 
-            font-size: 1.1rem; color: #ccc; border: 1px solid #333; background: rgba(255,255,255,0.05);
-            padding: 20px; display: inline-block; max-width: 80%; line-height: 1.6; 
+            font-size: 1.1rem; color: #333; border: 2px solid #eee; background: #fff;
+            padding: 25px; display: inline-block; max-width: 80%; line-height: 1.6; 
+            box-shadow: 10px 10px 0px #eee;
         }
 
         .footer { 
-            margin-top: 60px; text-align: center; font-size: 0.7rem; 
-            color: #444; font-family: monospace; text-transform: uppercase;
+            margin-top: 60px; text-align: center; font-size: 0.75rem; 
+            color: #999; font-family: monospace; text-transform: uppercase; font-weight: bold;
         }
     </style>
 </head>
@@ -302,11 +338,11 @@
 
 <!-- 1. Login Overlay -->
 <div id="loginOverlay">
-    <div class="login-box tech-box">
-        <div style="font-size:2.5rem; font-weight:900; color:#fff; margin-bottom:5px; letter-spacing:-2px;">BOOOM</div>
-        <div style="margin-bottom:30px; color:var(--yellow); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px;">游戏发行孵化评估中心</div>
+    <div class="login-box">
+        <div style="font-size:3rem; font-weight:900; color:var(--black); margin-bottom:5px; letter-spacing:-2px; line-height:1;">BOOOM</div>
+        <div style="margin-bottom:30px; color:#666; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">Incubation Evaluation v2.2</div>
         <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME" maxlength="10">
-        <button class="primary-btn" onclick="handleLogin()">进入系统 / ENTER</button>
+        <button class="primary-btn" onclick="handleLogin()">ENTER SYSTEM</button>
     </div>
 </div>
 
@@ -314,10 +350,10 @@
 <div id="dashboardSection">
     <div class="dash-header">
         <div>
-            <div class="dash-title">BOOOM 评估中心</div>
+            <div class="dash-title">BOOOM EVALUATION SYSTEM</div>
             <div class="user-info">
                 OPERATOR: <span id="dashUser" class="user-highlight"></span>
-                <span class="logout-link" onclick="handleLogout()">[退出]</span>
+                <span class="logout-link" onclick="handleLogout()">LOGOUT</span>
             </div>
         </div>
     </div>
@@ -328,13 +364,13 @@
             <div>NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v2.1</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v2.2</div>
 </div>
 
 <!-- 3. Main App Section -->
 <div id="appSection">
-    <div class="container tech-box" id="captureTarget">
-        <div class="back-link" onclick="goBackToDash()">&lt; 返回仪表盘</div>
+    <div class="container" id="captureTarget">
+        <div class="back-link" onclick="goBackToDash()">&lt; DASHBOARD</div>
 
         <div class="header">
             <!-- 截图时会自动替换为纯文本 -->
@@ -362,19 +398,19 @@
         <!-- Extra Section: Visible in UI, HIDDEN in Screenshot -->
         <div id="extraSection">
             <div class="extra-group">
-                <label class="extra-label">优点</label>
+                <label class="extra-label">优点 (Pros)</label>
                 <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">缺点</label>
+                <label class="extra-label">缺点 (Cons)</label>
                 <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的风险...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">结论</label>
+                <label class="extra-label">结论 (Conclusion)</label>
                 <input type="text" class="extra-input" id="extra-conclusion" placeholder="是否投入精力...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">提问</label>
+                <label class="extra-label">提问 (Questions)</label>
                 <textarea class="extra-input" id="extra-questions" placeholder="希望向团队提的问题..."></textarea>
             </div>
         </div>
@@ -388,13 +424,13 @@
         </div>
 
         <div class="result-section" id="resultSection">
-            <div style="color: #666; font-size: 0.8rem; letter-spacing: 2px;">综合得分</div>
+            <div style="color: #999; font-size: 0.8rem; letter-spacing: 2px; font-weight:bold;">TOTAL SCORE</div>
             <div class="total-score" id="finalScore">0.00</div>
             <div id="gradeBadge" class="grade-badge">---</div>
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v2.1</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v2.2</div>
     </div>
 </div>
 
@@ -402,6 +438,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+    // ✅ 真实密钥已集成
     const firebaseConfig = {
       apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
       authDomain: "booom-evaluator.firebaseapp.com",
@@ -449,7 +486,7 @@
 
     window.handleLogin = () => {
         const name = document.getElementById('loginName').value.trim();
-        if(!name) return alert("请输入名字");
+        if(!name) return alert("PLEASE ENTER YOUR NAME");
         currentUser = name;
         localStorage.setItem('booom_user', name);
         document.getElementById('loginOverlay').style.display = 'none';
@@ -457,7 +494,7 @@
     };
 
     window.handleLogout = () => {
-        if(confirm("确定要退出当前用户吗？")) {
+        if(confirm("Logout?")) {
             localStorage.removeItem('booom_user');
             currentUser = "";
             document.getElementById('dashboardSection').style.display = 'none';
@@ -480,11 +517,11 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const card = document.createElement('div');
-                card.className = 'p-card tech-box'; // Add tech style
+                card.className = 'p-card tech-box'; 
                 card.onclick = () => loadProject(doc.id);
                 
                 const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
-                let color = '#666';
+                let color = '#999';
                 if(score >= 85) color = 'var(--yellow)';
                 else if(score >= 68) color = 'var(--red)';
                 else if(score >= 52) color = 'var(--grade-b)';
@@ -499,7 +536,7 @@
                     <div class="p-card-title">${data.name}</div>
                     <div class="p-card-score" style="color:${color}">${score}</div>
                     <div class="p-card-meta">
-                        <span>👤 ${data.reviewCount || 0}人评分</span>
+                        <span>👤 ${data.reviewCount || 0}</span>
                         <span>${timeStr}</span>
                     </div>
                 `;
@@ -509,7 +546,7 @@
     }
 
     window.createNewProject = () => {
-        const name = prompt("请输入新项目的名称:");
+        const name = prompt("PROJECT NAME:");
         if(name && name.trim()) loadProject(name.trim());
     };
 
@@ -555,7 +592,7 @@
                 <ul class="dim-desc">${descHtml}</ul>
                 <div class="score-selector">${buttonsHtml}</div>
                 <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 简评..." maxlength="40">
-                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--yellow); font-size:0.9rem; font-family:monospace;"></div>
+                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--black); font-size:0.95rem; font-weight:bold; border-left:3px solid var(--yellow); padding-left:10px;"></div>
             `;
             container.appendChild(div);
         });
@@ -639,7 +676,7 @@
         if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
         else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
         else if (total >= 52) { grade = 'B'; color = '#4D94FF'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = 'FAIL'; color = '#666'; comment = '核心竞争力不足或致命短板过多。'; }
+        else { grade = 'FAIL'; color = '#999'; comment = '核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }
 
@@ -648,7 +685,7 @@
         const badge = document.getElementById('gradeBadge');
         badge.innerText = isTeam ? `团队综合: ${res.grade}` : `我的评级: ${res.grade}`;
         badge.style.background = res.color;
-        badge.style.color = (res.grade === 'S' || res.grade === 'A') ? '#000' : '#fff';
+        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
         document.getElementById('commentText').innerText = res.comment;
         document.getElementById('commentText').style.borderColor = res.color; 
         document.getElementById('resultSection').style.display = 'block';
@@ -793,7 +830,7 @@
             }
         });
 
-        html2canvas(target, { backgroundColor: '#000', scale: 2 }).then(c => {
+        html2canvas(target, { backgroundColor: '#fff', scale: 2 }).then(c => {
             // 3. Revert
             extraSec.style.display = originalExtraDisplay;
             document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'block');

@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v3.2</title>
+    <title>BOOOM 游戏发行孵化评估系统 v3.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            /* v3.2 工业科幻亮色系 - 高对比度修正版 */
-            --bg-color: #F2F3F5;
+            /* v3.3 工业科幻亮色系 - 稳定版 */
+            --bg-color: #F4F6F8;
             --card-bg: #FFFFFF;
             
             /* 核心三色 */
-            --black: #080808;
+            --black: #000000;
             --yellow: #FFD700; /* 主高亮 */
-            --red: #FF2222;    /* 辅助/警示 */
+            --red: #FF3333;    /* 辅助/警示 */
             
             --text-main: #000000;
-            --text-dim: #555555;
+            --text-dim: #666666;
             
             --border: 2px solid #000000;
             
             --grade-s: #FFD700;
-            --grade-a: #FF2222;
+            --grade-a: #FF3333;
             --grade-b: #4D94FF;
             --grade-f: #999999;
         }
@@ -32,8 +32,8 @@
             background-color: var(--bg-color);
             /* 工业网格背景 */
             background-image: 
-                linear-gradient(#DCDCDC 1px, transparent 1px),
-                linear-gradient(90deg, #DCDCDC 1px, transparent 1px);
+                linear-gradient(#E0E0E0 1px, transparent 1px),
+                linear-gradient(90deg, #E0E0E0 1px, transparent 1px);
             background-size: 40px 40px;
             color: var(--text-main);
             min-height: 100vh; padding: 40px 20px; box-sizing: border-box;
@@ -43,11 +43,11 @@
         /* --- 基础组件 --- */
         .tech-box {
             background: var(--card-bg); border: var(--border);
-            box-shadow: 6px 6px 0px rgba(0,0,0,0.15); position: relative;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1); position: relative;
         }
         /* 装饰：左上角黄色方块 */
         .tech-box::before {
-            content: ''; position: absolute; top: -4px; left: -4px; width: 12px; height: 12px;
+            content: ''; position: absolute; top: -6px; left: -6px; width: 12px; height: 12px;
             background: var(--yellow); border: 2px solid var(--black); z-index: 5;
         }
 
@@ -228,7 +228,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <div style="font-size:3rem; font-weight:900; line-height:1; letter-spacing:-2px;">BOOOM</div>
-        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v3.2</div>
+        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v3.3</div>
         <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME / CODE" maxlength="20">
         <button class="btn btn-primary" style="width:100%;" onclick="handleLogin()">ENTER SYSTEM</button>
     </div>
@@ -254,7 +254,7 @@
             <div style="font-weight:bold; color:#999;">NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v3.2</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v3.3</div>
 </div>
 
 <!-- 3. Main App -->
@@ -305,7 +305,7 @@
                 <input type="text" class="extra-input" id="extra-conclusion" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
             </div>
             <div class="extra-group">
-                <label class="extra-label">向开发者的提问</label>
+                <label class="extra-label">希望向团队提的问题</label>
                 <textarea class="extra-input" id="extra-questions" placeholder="在给每个维度做出判断时，如果你觉得它缺少一些内容，在 BP 或 Demo 中没有展示，那它就可以形成你希望问开发者的问题。由此诞生的问题一定会围绕在我们在乎的维度里。"></textarea>
             </div>
         </div>
@@ -325,7 +325,7 @@
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v3.2</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v3.3</div>
     </div>
 </div>
 
@@ -333,6 +333,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+    // ✅ 真实密钥
     const firebaseConfig = {
       apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
       authDomain: "booom-evaluator.firebaseapp.com",
@@ -352,16 +353,28 @@
     let currentTab = "my";
     let teamData = null; 
 
-    // --- Login ---
-    const savedName = localStorage.getItem('booom_user');
-    const savedLevel = localStorage.getItem('booom_level');
-    if(savedName) {
-        currentUser = savedName;
-        adminLevel = parseInt(savedLevel || "0");
-        document.getElementById('loginOverlay').style.display = 'none';
-        initDashboard();
-    }
+    // --- Config ---
+    let config = {
+        coeffs: { 10: 1.00, 9: 0.97, 8: 0.80, 7: 0.65, 6: 0.52, 5: 0.35, 4: 0.20, 3: 0.07, 2: 0.02, 1: 0.00 },
+        dims: [
+            { id: 'core', name: '核心玩法系统', desc: ["游戏的交互体验顺畅，正反馈自然", "游戏拥有清晰的核心玩法，并且玩法循环有趣", "游戏的关卡/流程设计扎实有趣，能产生持续游玩的动力", "游戏系统深度足够，可以展望后续的游戏内容"] },
+            { id: 'narrative', name: '叙事与表现力', desc: ["游戏的文本或叙事表达易读且顺畅", "游戏的表现力优异，能让人快速代入剧情", "游戏中角色个性鲜明，逻辑真实可靠", "游戏的节奏合理，情感体验平滑"] },
+            { id: 'art', name: '审美与艺术表达', desc: ["游戏的美术风格及艺术审美突出，极具辨识度", "游戏的叙事与艺术表达结合融洽，不突兀", "游戏的字体及 UI 易读，与美术风格统一", "游戏的音效等细节质感优秀"] },
+            { id: 'originality', name: '游戏独创性', desc: ["游戏的玩法或风格具有独特性，在体验上会带给玩家新鲜感", "游戏具备独特的亮点，能在同类型游戏中脱颖而出", "游戏的题材相对小众，且能以独特的角度引人注意", "你需要更多更小众的游戏案例才能形容出它"] },
+            { id: 'team', name: '团队沟通与项目能力', desc: ["开发者交流能力正常，对该项目的开发有明确的认知，团队氛围良好", "游戏运行顺畅，优化到位，无明显Bug", "游戏未来制作的路线相对清晰，团队能认知开发难度", "游戏的项目规模，与预期的市场回报相对匹配"] },
+            { id: 'biz', name: '商业价值与市场潜力', desc: ["游戏的商品性强，教程引导合理，正反馈足够", "游戏的受众人群清晰可辨，且规模较大，海外市场潜力足够", "游戏具备转变为线上或移植多平台游戏的潜力", "游戏具备长期运营IP的潜力"] },
+            { id: 'intangible', name: '无形资产', desc: ["游戏的卖相是否够好，有无服务玩家的意识", "可能会引发争议和舆论风险<——>成为爆款的可能性", "游戏的传播性如何，是否有能被大众讨论的爆点，是否更容易被直播的形式传播", "你认为游戏是否存在明显的跨文化障碍"] }
+        ],
+        weightsA: [26, 12, 10, 13, 19, 14, 6],
+        weightsB: [10, 28, 12, 11, 17, 15, 7]
+    };
 
+    let currentMode = 'A';
+    let myScores = [null, null, null, null, null, null, null]; 
+    let extraSectionVisible = false;
+
+    // --- Bind Windows Functions (Crucial for Module) ---
+    
     window.handleLogin = () => {
         let input = document.getElementById('loginName').value.trim();
         if(!input) return alert("请输入名字");
@@ -383,121 +396,9 @@
         }
     };
 
-    // --- Dashboard ---
-    function initDashboard() {
-        document.getElementById('dashboardSection').style.display = 'block';
-        document.getElementById('dashUser').innerText = currentUser;
-        if(adminLevel > 0) {
-            const b = document.getElementById('adminBadge');
-            b.style.display = 'inline-block';
-            b.innerText = adminLevel===2 ? "SUPER ADMIN" : "ADMIN";
-        }
-
-        // FIX: Remove orderBy if old data missing field
-        const q = query(collection(db, "projects"));
-        
-        onSnapshot(q, (snapshot) => {
-            const container = document.getElementById('lobbyContainer');
-            container.innerHTML = '';
-            let p0=[], p1=[], p2=[];
-            
-            snapshot.forEach(doc => {
-                const d = doc.data(); d.id = doc.id;
-                // Client side sort
-                const p = d.priority !== undefined ? d.priority : 2;
-                if(p===0) p0.push(d); else if(p===1) p1.push(d); else p2.push(d);
-            });
-
-            // Sort by time desc locally
-            const timeSort = (a,b) => (b.lastUpdate?.seconds||0) - (a.lastUpdate?.seconds||0);
-            p0.sort(timeSort); p1.sort(timeSort); p2.sort(timeSort);
-
-            renderPriorityGroup(container, "P0 - 急！急！急！", "#FFD700", p0);
-            renderPriorityGroup(container, "P1 - 重点项目", "#E0E0E0", p1);
-            renderPriorityGroup(container, "P2 - 普通项目", "#FFF", p2);
-        });
-    }
-
-    function renderPriorityGroup(container, title, color, projects) {
-        // Always render groups for structure, or hide empty? Let's show title if items exist
-        if(projects.length === 0 && !title.includes("P0")) return; 
-        
-        const section = document.createElement('div');
-        section.className = 'priority-section';
-        const label = document.createElement('div');
-        label.className = 'priority-label';
-        label.innerText = title;
-        if(title.includes("P0")) { label.style.background = "var(--yellow)"; label.style.color = "#000"; }
-        section.appendChild(label);
-
-        const grid = document.createElement('div');
-        grid.className = 'project-grid';
-
-        if(projects.length === 0) {
-            const empty = document.createElement('div');
-            empty.style.color = '#999'; empty.innerText = "暂无项目";
-            grid.appendChild(empty);
-        } else {
-            projects.forEach(data => {
-                const card = document.createElement('div');
-                card.className = 'p-card tech-box';
-                card.onclick = (e) => { if(!e.target.classList.contains('p-btn')) loadProject(data.id); };
-
-                const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
-                let sc = '#999';
-                if(score >= 85) sc = 'var(--yellow)'; else if(score >= 68) sc = 'var(--red)';
-                
-                let timeStr = "-";
-                if(data.lastUpdate) {
-                    const date = data.lastUpdate.toDate();
-                    timeStr = `${date.getMonth()+1}/${date.getDate()}`;
-                }
-
-                let html = `
-                    <div class="p-card-title">${data.name}</div>
-                    <div class="p-card-score" style="color:${sc}">${score}</div>
-                    <div class="p-card-meta"><span>👤 ${data.reviewCount||0}</span> <span>${timeStr}</span></div>
-                `;
-
-                if(adminLevel > 0) {
-                    const cp = data.priority !== undefined ? data.priority : 2;
-                    html += `
-                    <div class="card-admin">
-                        <span class="p-btn ${cp===0?'active':''}" onclick="setPriority('${data.id}', 0)">P0</span>
-                        <span class="p-btn ${cp===1?'active':''}" onclick="setPriority('${data.id}', 1)">P1</span>
-                        <span class="p-btn ${cp===2?'active':''}" onclick="setPriority('${data.id}', 2)">P2</span>
-                    </div>`;
-                }
-                card.innerHTML = html;
-                grid.appendChild(card);
-            });
-        }
-        section.appendChild(grid);
-        container.appendChild(section);
-    }
-
-    window.setPriority = async (pid, level) => {
-        if(adminLevel === 0) return;
-        await updateDoc(doc(db, "projects", pid), { priority: level });
-    };
-
     window.createNewProject = () => {
         const name = prompt("请输入新项目名称:");
         if(name && name.trim()) loadProject(name.trim());
-    };
-
-    window.loadProject = (projName) => {
-        currentProject = projName;
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('appSection').style.display = 'block';
-        document.getElementById('displayProjectNameInput').value = currentProject;
-        
-        document.getElementById('tabAdmin').style.display = (adminLevel > 0) ? 'block' : 'none';
-        
-        renderInputs();
-        loadMyReview();
-        listenTeamData();
-        window.scrollTo(0,0);
     };
 
     window.goBackToDash = () => {
@@ -505,11 +406,112 @@
         document.getElementById('dashboardSection').style.display = 'block';
         currentTab = 'my'; teamData = null; myScores = [null, null, null, null, null, null, null];
         resetToUncalculatedState();
-        document.getElementById('tabMy').click();
-        window.scrollTo(0,0);
+        window.switchTab('my');
     };
 
-    // --- Tab Logic ---
+    window.toggleMode = () => {
+        if(currentTab === 'team') return;
+        currentMode = (currentMode === 'A') ? 'B' : 'A';
+        const switchBg = document.getElementById('switchBg');
+        if(currentMode === 'A') {
+            switchBg.style.transform = 'translateX(0)';
+            document.getElementById('btnA').classList.add('active'); document.getElementById('btnB').classList.remove('active');
+        } else {
+            switchBg.style.transform = 'translateX(100%)';
+            document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.add('active');
+        }
+        resetToUncalculatedState();
+    };
+
+    window.selectScore = (dimIndex, scoreVal) => {
+        if(currentTab === 'team') return;
+        myScores[dimIndex] = scoreVal;
+        updateUIFromScores();
+        resetToUncalculatedState();
+    };
+
+    window.calculateLocalResult = () => {
+        if(myScores.includes(null)) { alert("请先完成所有维度打分"); return; }
+        const res = calculateScoreInternal(myScores);
+        showResult(res, false);
+        document.getElementById('btnCalculate').style.display = 'none';
+        document.getElementById('btnAddComment').style.display = 'inline-block';
+        document.getElementById('btnUpload').style.display = 'inline-block';
+        document.getElementById('btnSaveImg').style.display = 'inline-block';
+    };
+
+    window.uploadToCloud = async () => {
+        const btn = document.getElementById('btnUpload');
+        btn.innerText = "..."; btn.disabled = true;
+        try {
+            const dimComments = [];
+            for(let i=0; i<7; i++) dimComments.push(document.getElementById(`dim-input-${i}`).value);
+            const extraData = {
+                pros: document.getElementById('extra-pros').value,
+                cons: document.getElementById('extra-cons').value,
+                conclusion: document.getElementById('extra-conclusion').value,
+                questions: document.getElementById('extra-questions').value
+            };
+            await setDoc(doc(db, "projects", currentProject, "reviews", currentUser), {
+                user: currentUser, scores: myScores, mode: currentMode,
+                comments: dimComments, extra: extraData, updatedAt: serverTimestamp()
+            });
+            await aggregateProjectData();
+            btn.innerText = "已同步";
+            setTimeout(() => { btn.innerText = "☁️ 提交同步"; btn.disabled = false; }, 2000);
+        } catch (e) { console.error(e); alert("Failed: " + e.message); btn.disabled = false; }
+    };
+
+    window.toggleExtraSection = () => {
+        extraSectionVisible = !extraSectionVisible;
+        document.getElementById('extraSection').style.display = extraSectionVisible ? 'block' : 'none';
+    };
+
+    window.saveImage = () => {
+        const target = document.getElementById('captureTarget');
+        const extraSec = document.getElementById('extraSection');
+        const wasExtraVisible = (extraSec.style.display === 'block');
+        extraSec.style.display = 'none';
+        document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'none');
+
+        const nameInput = document.getElementById('displayProjectNameInput');
+        const nameStatic = document.getElementById('displayProjectNameStatic');
+        nameStatic.innerText = nameInput.value;
+        nameInput.style.display = 'none'; nameStatic.style.display = 'block';
+
+        const modeControl = document.getElementById('modeSwitchControl');
+        const modeDisplay = document.getElementById('modeTextDisplay');
+        modeDisplay.innerText = currentMode === 'A' ? "类型：玩法驱动" : "类型：叙事驱动";
+        modeControl.style.display = 'none'; modeDisplay.style.display = 'block';
+
+        const dimInputs = document.querySelectorAll('.dim-note-input');
+        dimInputs.forEach((inp, idx) => {
+            const disp = document.getElementById(`dim-disp-${idx}`);
+            if(inp.value.trim() !== "") {
+                disp.innerText = "// " + inp.value; disp.style.display = 'block'; inp.style.display = 'none';
+            } else {
+                inp.style.display = 'none'; disp.style.display = 'none';
+            }
+        });
+
+        html2canvas(target, { backgroundColor: '#fff', scale: 2 }).then(c => {
+            if(wasExtraVisible) extraSec.style.display = 'block';
+            document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'block');
+            nameInput.style.display = 'block'; nameStatic.style.display = 'none';
+            modeControl.style.display = 'flex'; modeDisplay.style.display = 'none';
+            dimInputs.forEach((inp, idx) => {
+                const disp = document.getElementById(`dim-disp-${idx}`);
+                inp.style.display = 'block'; disp.style.display = 'none';
+            });
+            const a = document.createElement('a'); a.download = `${currentProject}_EVAL.png`; a.href = c.toDataURL(); a.click();
+        });
+    };
+
+    window.setPriority = async (pid, level) => {
+        if(adminLevel === 0) return;
+        await updateDoc(doc(db, "projects", pid), { priority: level });
+    };
+
     window.switchTab = async (tab) => {
         currentTab = tab;
         ['my','team','admin'].forEach(t => {
@@ -555,6 +557,255 @@
         updateUIFromScores();
     };
 
+    window.copyAllFeedback = () => { /* Assigned in loadAdminData */ };
+    window.deleteReview = async (uid) => { /* Assigned in loadAdminData */ };
+
+    // --- Internal Logic ---
+
+    // Init
+    const savedName = localStorage.getItem('booom_user');
+    const savedLevel = localStorage.getItem('booom_level');
+    if(savedName) {
+        currentUser = savedName;
+        adminLevel = parseInt(savedLevel || "0");
+        document.getElementById('loginOverlay').style.display = 'none';
+        initDashboard();
+    }
+
+    function initDashboard() {
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('dashUser').innerText = currentUser;
+        if(adminLevel > 0) {
+            const b = document.getElementById('adminBadge');
+            b.style.display = 'inline-block';
+            b.innerText = adminLevel===2 ? "SUPER ADMIN" : "ADMIN";
+        }
+
+        const q = query(collection(db, "projects"));
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('lobbyContainer');
+            container.innerHTML = '';
+            let p0=[], p1=[], p2=[];
+            snapshot.forEach(doc => {
+                const d = doc.data(); d.id = doc.id;
+                const p = d.priority !== undefined ? d.priority : 2;
+                if(p===0) p0.push(d); else if(p===1) p1.push(d); else p2.push(d);
+            });
+            // Local Sort by Time
+            const sorter = (a,b) => (b.lastUpdate?.seconds||0) - (a.lastUpdate?.seconds||0);
+            p0.sort(sorter); p1.sort(sorter); p2.sort(sorter);
+
+            renderPriorityGroup(container, "P0 - 最高优先级", "#FFD700", p0);
+            renderPriorityGroup(container, "P1 - 重点项目", "#E0E0E0", p1);
+            renderPriorityGroup(container, "P2 - 储备项目", "#FFF", p2);
+        });
+    }
+
+    function renderPriorityGroup(container, title, color, projects) {
+        if(projects.length === 0 && !title.includes("P0")) return;
+        
+        const section = document.createElement('div');
+        section.className = 'priority-section';
+        const label = document.createElement('div');
+        label.className = 'priority-label';
+        label.innerText = title;
+        if(title.includes("P0")) { label.style.background = "var(--yellow)"; label.style.color = "#000"; }
+        section.appendChild(label);
+
+        const grid = document.createElement('div');
+        grid.className = 'project-grid';
+
+        if(projects.length === 0) {
+            grid.innerHTML = '<div style="color:#999;">暂无项目</div>';
+        } else {
+            projects.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'p-card tech-box';
+                card.onclick = (e) => { if(!e.target.classList.contains('p-btn')) loadProject(data.id); };
+
+                const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
+                let sc = '#999';
+                if(score >= 85) sc = 'var(--yellow)'; else if(score >= 68) sc = 'var(--red)';
+                
+                let timeStr = "-";
+                if(data.lastUpdate) {
+                    const date = data.lastUpdate.toDate();
+                    timeStr = `${date.getMonth()+1}/${date.getDate()}`;
+                }
+
+                let html = `
+                    <div class="p-card-title">${data.name}</div>
+                    <div class="p-card-score" style="color:${sc}">${score}</div>
+                    <div class="p-card-meta"><span>👤 ${data.reviewCount||0}</span> <span>${timeStr}</span></div>
+                `;
+
+                if(adminLevel > 0) {
+                    const cp = data.priority !== undefined ? data.priority : 2;
+                    html += `
+                    <div class="card-admin">
+                        <span class="p-btn ${cp===0?'active':''}" onclick="setPriority('${data.id}', 0)">P0</span>
+                        <span class="p-btn ${cp===1?'active':''}" onclick="setPriority('${data.id}', 1)">P1</span>
+                        <span class="p-btn ${cp===2?'active':''}" onclick="setPriority('${data.id}', 2)">P2</span>
+                    </div>`;
+                }
+                card.innerHTML = html;
+                grid.appendChild(card);
+            });
+        }
+        section.appendChild(grid);
+        container.appendChild(section);
+    }
+
+    async function loadProject(projName) {
+        currentProject = projName;
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('appSection').style.display = 'block';
+        document.getElementById('displayProjectNameInput').value = currentProject;
+        document.getElementById('tabAdmin').style.display = (adminLevel > 0) ? 'block' : 'none';
+        renderInputs();
+        loadMyReview();
+        listenTeamData();
+        window.scrollTo(0,0);
+    }
+
+    function renderInputs() {
+        const container = document.getElementById('dimensions-container');
+        container.innerHTML = '';
+        config.dims.forEach((dim, index) => {
+            const div = document.createElement('div');
+            div.className = 'dimension-row';
+            const descHtml = dim.desc.map(d => `<li>${d}</li>`).join('');
+            
+            let buttonsHtml = '';
+            for(let i=1; i<=10; i++) {
+                buttonsHtml += `<div class="score-btn" id="btn-${index}-${i}" onclick="selectScore(${index}, ${i})">${i}</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="dim-header">
+                    <span>${dim.name}</span>
+                    <span class="team-avg-display" id="team-avg-${index}"></span>
+                </div>
+                <ul class="dim-desc">${descHtml}</ul>
+                <div class="score-selector">${buttonsHtml}</div>
+                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 简评..." maxlength="40">
+                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--black); font-weight:bold; padding-left:10px; border-left:3px solid var(--yellow);"></div>
+            `;
+            container.appendChild(div);
+        });
+        updateUIFromScores();
+    }
+
+    function updateUIFromScores() {
+        document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected', 'selected-low', 'team-avg-highlight'));
+        if(currentTab === 'my') {
+            myScores.forEach((s, idx) => {
+                if(s !== null) {
+                    const btn = document.getElementById(`btn-${idx}-${s}`);
+                    if(btn) { btn.classList.add('selected'); if(s<=5) btn.classList.add('selected-low'); }
+                }
+            });
+        } else if (currentTab === 'team' && teamData && teamData.averages) {
+            teamData.averages.forEach((avg, idx) => {
+                const rounded = Math.round(avg);
+                if(rounded >= 1 && rounded <= 10) {
+                    const btn = document.getElementById(`btn-${idx}-${rounded}`);
+                    if(btn) btn.classList.add('team-avg-highlight');
+                }
+            });
+        }
+    }
+
+    function calculateScoreInternal(scoreArray) {
+        let total = 0;
+        const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
+        scoreArray.forEach((score, i) => { 
+            const intScore = Math.round(score); const safeScore = Math.max(1, Math.min(10, intScore));
+            total += weights[i] * config.coeffs[safeScore]; 
+        });
+        let grade, color, comment;
+        if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
+        else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
+        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        else { grade = 'FAIL'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
+        return { total, grade, color, comment };
+    }
+
+    function showResult(res, isTeam) {
+        document.getElementById('finalScore').innerText = res.total.toFixed(2);
+        const badge = document.getElementById('gradeBadge');
+        badge.innerText = isTeam ? `团队综合: ${res.grade}` : res.grade;
+        badge.style.background = res.color;
+        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
+        document.getElementById('commentText').innerText = res.comment;
+        document.getElementById('commentText').style.borderColor = res.color; 
+        document.getElementById('resultSection').style.display = 'block';
+    }
+
+    function resetToUncalculatedState() {
+        if(currentTab === 'team') return;
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('btnCalculate').style.display = 'block';
+        document.getElementById('btnAddComment').style.display = 'none';
+        document.getElementById('btnUpload').style.display = 'none';
+        document.getElementById('btnSaveImg').style.display = 'none';
+        document.getElementById('extraSection').style.display = 'none';
+        extraSectionVisible = false;
+    }
+
+    async function loadMyReview() {
+        try {
+            const docRef = doc(db, "projects", currentProject, "reviews", currentUser);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                myScores = data.scores;
+                currentMode = data.mode || 'A';
+                data.comments.forEach((txt, i) => { if(i<7) document.getElementById(`dim-input-${i}`).value = txt; });
+                document.getElementById('extra-pros').value = data.extra.pros || "";
+                document.getElementById('extra-cons').value = data.extra.cons || "";
+                document.getElementById('extra-conclusion').value = data.extra.conclusion || "";
+                document.getElementById('extra-questions').value = data.extra.questions || "";
+                if(currentMode === 'A') {
+                    document.getElementById('switchBg').style.transform = 'translateX(0)';
+                    document.getElementById('btnA').classList.add('active'); document.getElementById('btnB').classList.remove('active');
+                } else {
+                    document.getElementById('switchBg').style.transform = 'translateX(100%)';
+                    document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.add('active');
+                }
+                updateUIFromScores();
+            }
+        } catch(e) {}
+    }
+
+    async function aggregateProjectData() {
+        const reviewsSnapshot = await getDocs(collection(db, "projects", currentProject, "reviews"));
+        let count = 0; let sums = [0,0,0,0,0,0,0];
+        reviewsSnapshot.forEach(doc => {
+            const s = doc.data().scores;
+            if(s && s.length === 7) { count++; s.forEach((val, i) => sums[i] += val); }
+        });
+        if(count > 0) {
+            const averages = sums.map(s => s / count);
+            const totalAvg = calculateScoreInternal(averages).total;
+            await setDoc(doc(db, "projects", currentProject), {
+                name: currentProject, reviewCount: count, averages: averages,
+                totalAvg: totalAvg, lastUpdate: serverTimestamp()
+            }, { merge: true });
+        }
+    }
+
+    function listenTeamData() {
+        onSnapshot(doc(db, "projects", currentProject), (doc) => {
+            if(doc.exists()) {
+                teamData = doc.data();
+                teamData.averages.forEach((avg, i) => {
+                    document.getElementById(`team-avg-${i}`).innerText = `AVG: ${avg.toFixed(1)}`;
+                });
+            }
+        });
+    }
+
     async function loadAdminData() {
         const list = document.getElementById('adminReviewList');
         list.innerHTML = '加载中...';
@@ -590,264 +841,8 @@
             loadAdminData();
         }
     };
-
-    // --- Core Logic ---
-    let config = {
-        coeffs: { 10: 1.00, 9: 0.97, 8: 0.80, 7: 0.65, 6: 0.52, 5: 0.35, 4: 0.20, 3: 0.07, 2: 0.02, 1: 0.00 },
-        dims: [
-            { id: 'core', name: '核心玩法系统', desc: ["游戏的交互体验顺畅，正反馈自然", "游戏拥有清晰的核心玩法，并且玩法循环有趣", "游戏的关卡/流程设计扎实有趣，能产生持续游玩的动力", "游戏系统深度足够，可以展望后续的游戏内容"] },
-            { id: 'narrative', name: '叙事与表现力', desc: ["游戏的文本或叙事表达易读且顺畅", "游戏的表现力优异，能让人快速代入剧情", "游戏中角色个性鲜明，逻辑真实可靠", "游戏的节奏合理，情感体验平滑"] },
-            { id: 'art', name: '审美与艺术表达', desc: ["游戏的美术风格及艺术审美突出，极具辨识度", "游戏的叙事与艺术表达结合融洽，不突兀", "游戏的字体及 UI 易读，与美术风格统一", "游戏的音效等细节质感优秀"] },
-            { id: 'originality', name: '游戏独创性', desc: ["游戏的玩法或风格具有独特性，在体验上会带给玩家新鲜感", "游戏具备独特的亮点，能在同类型游戏中脱颖而出", "游戏的题材相对小众，且能以独特的角度引人注意", "你需要更多更小众的游戏案例才能形容出它"] },
-            { id: 'team', name: '团队沟通与项目能力', desc: ["开发者交流能力正常，对该项目的开发有明确的认知，团队氛围良好", "游戏运行顺畅，优化到位，无明显Bug", "游戏未来制作的路线相对清晰，团队能认知开发难度", "游戏的项目规模，与预期的市场回报相对匹配"] },
-            { id: 'biz', name: '商业价值与市场潜力', desc: ["游戏的商品性强，教程引导合理，正反馈足够", "游戏的受众人群清晰可辨，且规模较大，海外市场潜力足够", "游戏具备转变为线上或移植多平台游戏的潜力", "游戏具备长期运营IP的潜力"] },
-            { id: 'intangible', name: '无形资产', desc: ["游戏的卖相是否够好，有无服务玩家的意识", "可能会引发争议和舆论风险<——>成为爆款的可能性", "游戏的传播性如何，是否有能被大众讨论的爆点，是否更容易被直播的形式传播", "你认为游戏是否存在明显的跨文化障碍"] }
-        ],
-        weightsA: [26, 12, 10, 13, 19, 14, 6],
-        weightsB: [10, 28, 12, 11, 17, 15, 7]
-    };
-
-    function renderInputs() {
-        const container = document.getElementById('dimensions-container');
-        container.innerHTML = '';
-        config.dims.forEach((dim, index) => {
-            const div = document.createElement('div');
-            div.className = 'dimension-row';
-            const descHtml = dim.desc.map(d => `<li>${d}</li>`).join('');
-            
-            let buttonsHtml = '';
-            for(let i=1; i<=10; i++) {
-                buttonsHtml += `<div class="score-btn" id="btn-${index}-${i}" onclick="selectScore(${index}, ${i})">${i}</div>`;
-            }
-
-            div.innerHTML = `
-                <div class="dim-header">
-                    <span>${dim.name}</span>
-                    <span class="team-avg-display" id="team-avg-${index}"></span>
-                </div>
-                <ul class="dim-desc">${descHtml}</ul>
-                <div class="score-selector">${buttonsHtml}</div>
-                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 简评..." maxlength="40">
-                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--black); font-weight:bold; padding-left:10px; border-left:3px solid var(--yellow);"></div>
-            `;
-            container.appendChild(div);
-        });
-        updateUIFromScores();
-    }
-
-    window.selectScore = (dimIndex, scoreVal) => {
-        if(currentTab === 'team') return;
-        myScores[dimIndex] = scoreVal;
-        updateUIFromScores();
-        resetToUncalculatedState();
-    };
-
-    function updateUIFromScores() {
-        document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected', 'selected-low', 'team-avg-highlight'));
-        if(currentTab === 'my') {
-            myScores.forEach((s, idx) => {
-                if(s !== null) {
-                    const btn = document.getElementById(`btn-${idx}-${s}`);
-                    if(btn) { btn.classList.add('selected'); if(s<=5) btn.classList.add('selected-low'); }
-                }
-            });
-        } else if (currentTab === 'team' && teamData && teamData.averages) {
-            teamData.averages.forEach((avg, idx) => {
-                const rounded = Math.round(avg);
-                if(rounded >= 1 && rounded <= 10) {
-                    const btn = document.getElementById(`btn-${idx}-${rounded}`);
-                    if(btn) btn.classList.add('team-avg-highlight');
-                }
-            });
-        }
-    }
-
-    window.toggleMode = () => {
-        if(currentTab === 'team') return;
-        currentMode = (currentMode === 'A') ? 'B' : 'A';
-        const switchBg = document.getElementById('switchBg');
-        if(currentMode === 'A') {
-            switchBg.style.transform = 'translateX(0)';
-            document.getElementById('btnA').classList.add('active'); document.getElementById('btnB').classList.remove('active');
-        } else {
-            switchBg.style.transform = 'translateX(100%)';
-            document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.add('active');
-        }
-        resetToUncalculatedState();
-    };
-
-    window.calculateLocalResult = () => {
-        if(myScores.includes(null)) { alert("请先完成所有维度打分"); return; }
-        const res = calculateScoreInternal(myScores);
-        showResult(res, false);
-        document.getElementById('btnCalculate').style.display = 'none';
-        document.getElementById('btnAddComment').style.display = 'inline-block';
-        document.getElementById('btnUpload').style.display = 'inline-block';
-        document.getElementById('btnSaveImg').style.display = 'inline-block';
-    };
-
-    function calculateScoreInternal(scoreArray) {
-        let total = 0;
-        const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
-        scoreArray.forEach((score, i) => { 
-            const intScore = Math.round(score); 
-            const safeScore = Math.max(1, Math.min(10, intScore));
-            total += weights[i] * config.coeffs[safeScore]; 
-        });
-        let grade, color, comment;
-        if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
-        else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
-        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = 'FAIL'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
-        return { total, grade, color, comment };
-    }
-
-    function showResult(res, isTeam) {
-        document.getElementById('finalScore').innerText = res.total.toFixed(2);
-        const badge = document.getElementById('gradeBadge');
-        badge.innerText = isTeam ? `团队综合: ${res.grade}` : res.grade;
-        badge.style.background = res.color;
-        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
-        document.getElementById('commentText').innerText = res.comment;
-        document.getElementById('commentText').style.borderColor = res.color; 
-        document.getElementById('resultSection').style.display = 'block';
-    }
-
-    function resetToUncalculatedState() {
-        if(currentTab === 'team') return;
-        document.getElementById('resultSection').style.display = 'none';
-        document.getElementById('btnCalculate').style.display = 'block';
-        document.getElementById('btnAddComment').style.display = 'none';
-        document.getElementById('btnUpload').style.display = 'none';
-        document.getElementById('btnSaveImg').style.display = 'none';
-        document.getElementById('extraSection').style.display = 'none';
-        extraSectionVisible = false;
-    }
-
-    window.toggleExtraSection = () => {
-        extraSectionVisible = !extraSectionVisible;
-        document.getElementById('extraSection').style.display = extraSectionVisible ? 'block' : 'none';
-    };
-
-    // Firebase Funcs
-    async function loadMyReview() {
-        try {
-            const docRef = doc(db, "projects", currentProject, "reviews", currentUser);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                myScores = data.scores;
-                currentMode = data.mode || 'A';
-                data.comments.forEach((txt, i) => { if(i<7) document.getElementById(`dim-input-${i}`).value = txt; });
-                document.getElementById('extra-pros').value = data.extra.pros || "";
-                document.getElementById('extra-cons').value = data.extra.cons || "";
-                document.getElementById('extra-conclusion').value = data.extra.conclusion || "";
-                document.getElementById('extra-questions').value = data.extra.questions || "";
-                
-                if(currentMode === 'A') {
-                    document.getElementById('switchBg').style.transform = 'translateX(0)';
-                    document.getElementById('btnA').classList.add('active');
-                    document.getElementById('btnB').classList.remove('active');
-                } else {
-                    document.getElementById('switchBg').style.transform = 'translateX(100%)';
-                    document.getElementById('btnA').classList.remove('active');
-                    document.getElementById('btnB').classList.add('active');
-                }
-                updateUIFromScores();
-            }
-        } catch(e) { }
-    }
-
-    window.uploadToCloud = async () => {
-        const btn = document.getElementById('btnUpload');
-        btn.innerText = "..."; btn.disabled = true;
-        try {
-            const dimComments = [];
-            for(let i=0; i<7; i++) dimComments.push(document.getElementById(`dim-input-${i}`).value);
-            const extraData = {
-                pros: document.getElementById('extra-pros').value,
-                cons: document.getElementById('extra-cons').value,
-                conclusion: document.getElementById('extra-conclusion').value,
-                questions: document.getElementById('extra-questions').value
-            };
-            await setDoc(doc(db, "projects", currentProject, "reviews", currentUser), {
-                user: currentUser, scores: myScores, mode: currentMode,
-                comments: dimComments, extra: extraData, updatedAt: serverTimestamp()
-            });
-            await aggregateProjectData();
-            btn.innerText = "SAVED";
-            setTimeout(() => { btn.innerText = "☁️ 提交同步"; btn.disabled = false; }, 2000);
-        } catch (e) { console.error(e); alert("Error"); btn.innerText = "RETRY"; btn.disabled = false; }
-    };
-
-    async function aggregateProjectData() {
-        const reviewsSnapshot = await getDocs(collection(db, "projects", currentProject, "reviews"));
-        let count = 0; let sums = [0,0,0,0,0,0,0];
-        reviewsSnapshot.forEach(doc => {
-            const s = doc.data().scores;
-            if(s && s.length === 7) { count++; s.forEach((val, i) => sums[i] += val); }
-        });
-        if(count > 0) {
-            const averages = sums.map(s => s / count);
-            const totalAvg = calculateScoreInternal(averages).total;
-            await setDoc(doc(db, "projects", currentProject), {
-                name: currentProject, reviewCount: count, averages: averages,
-                totalAvg: totalAvg, lastUpdate: serverTimestamp()
-            }, { merge: true });
-        }
-    }
-
-    function listenTeamData() {
-        onSnapshot(doc(db, "projects", currentProject), (doc) => {
-            if(doc.exists()) {
-                teamData = doc.data();
-                teamData.averages.forEach((avg, i) => {
-                    document.getElementById(`team-avg-${i}`).innerText = `AVG: ${avg.toFixed(1)}`;
-                });
-            }
-        });
-    }
-
-    window.saveImage = () => {
-        const target = document.getElementById('captureTarget');
-        const extraSec = document.getElementById('extraSection');
-        const wasExtraVisible = (extraSec.style.display === 'block');
-        extraSec.style.display = 'none';
-        
-        document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'none');
-
-        const nameInput = document.getElementById('displayProjectNameInput');
-        const nameStatic = document.getElementById('displayProjectNameStatic');
-        nameStatic.innerText = nameInput.value;
-        nameInput.style.display = 'none'; nameStatic.style.display = 'block';
-
-        const modeControl = document.getElementById('modeSwitchControl');
-        const modeDisplay = document.getElementById('modeTextDisplay');
-        modeDisplay.innerText = currentMode === 'A' ? "类型：玩法驱动" : "类型：叙事驱动";
-        modeControl.style.display = 'none'; modeDisplay.style.display = 'block';
-
-        const dimInputs = document.querySelectorAll('.dim-note-input');
-        dimInputs.forEach((inp, idx) => {
-            const disp = document.getElementById(`dim-disp-${idx}`);
-            if(inp.value.trim() !== "") {
-                disp.innerText = "// " + inp.value; disp.style.display = 'block'; inp.style.display = 'none';
-            } else {
-                inp.style.display = 'none'; disp.style.display = 'none';
-            }
-        });
-
-        html2canvas(target, { backgroundColor: '#fff', scale: 2 }).then(c => {
-            if(wasExtraVisible) extraSec.style.display = 'block';
-            document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'block');
-            nameInput.style.display = 'block'; nameStatic.style.display = 'none';
-            modeControl.style.display = 'flex'; modeDisplay.style.display = 'none';
-            dimInputs.forEach((inp, idx) => {
-                const disp = document.getElementById(`dim-disp-${idx}`);
-                inp.style.display = 'block'; disp.style.display = 'none';
-            });
-            const a = document.createElement('a'); a.download = `${currentProject}_EVAL.png`; a.href = c.toDataURL(); a.click();
-        });
-    };
+    
+    window.copyAllFeedback = () => {}; // Init placeholder
 </script>
 </body>
 </html>

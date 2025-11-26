@@ -294,19 +294,19 @@
         <div id="extraSection">
             <div class="extra-group">
                 <label class="extra-label">优点</label>
-                <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何...">
+                <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
             </div>
             <div class="extra-group">
                 <label class="extra-label">缺点</label>
-                <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的风险...">
+                <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的明显缺点与潜在风险">
             </div>
             <div class="extra-group">
                 <label class="extra-label">结论</label>
-                <input type="text" class="extra-input" id="extra-conclusion" placeholder="是否投入精力...">
+                <input type="text" class="extra-input" id="extra-conclusion" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
             </div>
             <div class="extra-group">
-                <label class="extra-label">提问</label>
-                <textarea class="extra-input" id="extra-questions" placeholder="希望向团队提的问题..."></textarea>
+                <label class="extra-label">向开发者的提问</label>
+                <textarea class="extra-input" id="extra-questions" placeholder="在给每个维度做出判断时，如果你觉得它缺少一些内容，在 BP 或 Demo 中没有展示，那它就可以形成你希望问开发者的问题。由此诞生的问题一定会围绕在我们在乎的维度里。"></textarea>
             </div>
         </div>
 
@@ -595,13 +595,13 @@
     let config = {
         coeffs: { 10: 1.00, 9: 0.97, 8: 0.80, 7: 0.65, 6: 0.52, 5: 0.35, 4: 0.20, 3: 0.07, 2: 0.02, 1: 0.00 },
         dims: [
-            { id: 'core', name: '核心玩法系统', desc: ["游戏的交互体验顺畅...", "核心玩法清晰...", "关卡设计扎实...", "系统深度足够..."] },
-            { id: 'narrative', name: '叙事与表现力', desc: ["文本表达易读...", "表现力优异...", "角色个性鲜明...", "节奏合理..."] },
-            { id: 'art', name: '审美与艺术表达', desc: ["美术风格突出...", "艺术表达融洽...", "UI易读统一...", "细节质感优秀"] },
-            { id: 'originality', name: '游戏独创性', desc: ["玩法风格独特...", "具备独特亮点...", "题材相对小众...", "需要更多案例形容"] },
-            { id: 'team', name: '团队沟通与项目能力', desc: ["交流能力正常...", "运行顺畅无Bug...", "路线清晰...", "规模与回报匹配"] },
-            { id: 'biz', name: '商业价值与市场潜力', desc: ["商品性强...", "受众人群清晰...", "多平台潜力...", "IP运营潜力"] },
-            { id: 'intangible', name: '无形资产', desc: ["卖相是否够好...", "舆论风险与爆款...", "传播性与爆点...", "跨文化障碍"] }
+            { id: 'core', name: '核心玩法系统', desc: ["游戏的交互体验顺畅，正反馈自然", "游戏拥有清晰的核心玩法，并且玩法循环有趣", "游戏的关卡/流程设计扎实有趣，能产生持续游玩的动力", "游戏系统深度足够，可以展望后续的游戏内容"] },
+            { id: 'narrative', name: '叙事与表现力', desc: ["游戏的文本或叙事表达易读且顺畅", "游戏的表现力优异，能让人快速代入剧情", "游戏中角色个性鲜明，逻辑真实可靠", "游戏的节奏合理，情感体验平滑"] },
+            { id: 'art', name: '审美与艺术表达', desc: ["游戏的美术风格及艺术审美突出，极具辨识度", "游戏的叙事与艺术表达结合融洽，不突兀", "游戏的字体及 UI 易读，与美术风格统一", "游戏的音效等细节质感优秀"] },
+            { id: 'originality', name: '游戏独创性', desc: ["游戏的玩法或风格具有独特性，在体验上会带给玩家新鲜感", "游戏具备独特的亮点，能在同类型游戏中脱颖而出", "游戏的题材相对小众，且能以独特的角度引人注意", "你需要更多更小众的游戏案例才能形容出它"] },
+            { id: 'team', name: '团队沟通与项目能力', desc: ["开发者交流能力正常，对该项目的开发有明确的认知，团队氛围良好", "游戏运行顺畅，优化到位，无明显Bug", "游戏未来制作的路线相对清晰，团队能认知开发难度", "游戏的项目规模，与预期的市场回报相对匹配"] },
+            { id: 'biz', name: '商业价值与市场潜力', desc: ["游戏的商品性强，教程引导合理，正反馈足够", "游戏的受众人群清晰可辨，且规模较大，海外市场潜力足够", "游戏具备转变为线上或移植多平台游戏的潜力", "游戏具备长期运营IP的潜力"] },
+            { id: 'intangible', name: '无形资产', desc: ["游戏的卖相是否够好，有无服务玩家的意识", "可能会引发争议和舆论风险<——>成为爆款的可能性", "游戏的传播性如何，是否有能被大众讨论的爆点，是否更容易被直播的形式传播", "你认为游戏是否存在明显的跨文化障碍"] }
         ],
         weightsA: [26, 12, 10, 13, 19, 14, 6],
         weightsB: [10, 28, 12, 11, 17, 15, 7]

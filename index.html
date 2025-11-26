@@ -3,96 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v2.0</title>
+    <title>BOOOM 游戏发行孵化评估系统 v2.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            /* BOOOOOOM 风格：极简、黑白、高亮酸性黄 */
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
+            /* BOOOM 品牌色：明黄、朱红、黑 */
+            --bg-dark: #050505;
+            --bg-card: rgba(20, 20, 20, 0.95);
+            --yellow: #FFD700;
+            --red: #FF2A2A; /* 朱红 */
+            --gradient-main: linear-gradient(135deg, var(--yellow) 0%, var(--red) 100%);
+            --gradient-hover: linear-gradient(135deg, #ffe033 0%, #ff5555 100%);
+            
             --text-main: #ffffff;
-            --text-muted: #666666;
-            --accent: #E7FF00; /* 酸性黄，更具设计感 */
-            --accent-text: #000000;
+            --text-dim: #888888;
             
-            --border-color: #333333;
-            --button-bg: #222222;
-            
-            --grade-s: #E7FF00;
-            --grade-a: #FF4D4D; /* 设计感红 */
-            --grade-b: #4D94FF; /* 设计感蓝 */
-            --grade-f: #666666;
-
-            --border-radius: 4px; /* 更锋利的圆角 */
+            --border-glow: 0 0 10px rgba(255, 42, 42, 0.2);
+            --tech-border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         body {
-            margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            background: var(--bg-color); color: var(--text-main);
+            margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-dark);
+            /* 科技感背景网格 */
+            background-image: 
+                linear-gradient(rgba(255, 42, 42, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 42, 42, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: var(--text-main);
             min-height: 100vh; padding: 40px 20px; box-sizing: border-box;
             display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* --- 通用组件：切角边框与科技感 --- */
+        .tech-box {
+            background: var(--bg-card);
+            border: var(--tech-border);
+            /* 右下角切角 */
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 20px), 
+                calc(100% - 20px) 100%, 
+                0 100%
+            );
+            position: relative;
+        }
+        /* 装饰性左边框 */
+        .tech-box::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--gradient-main);
         }
 
         /* --- 1. Login Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); 
+            background: rgba(0,0,0,0.95); 
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            background: #000; padding: 50px; border: 1px solid var(--accent);
-            text-align: center; width: 320px;
+            padding: 50px; width: 320px; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 42, 42, 0.1);
         }
         .login-input {
-            width: 100%; padding: 15px; margin: 25px 0; background: #111;
-            border: 1px solid #333; color: #fff; font-size: 1rem;
-            text-align: center; outline: none; transition: border-color 0.2s;
+            width: 100%; padding: 15px; margin: 30px 0; background: #000;
+            border: 1px solid #444; color: var(--yellow); font-size: 1.1rem; font-weight: bold;
+            text-align: center; outline: none; transition: all 0.3s;
         }
-        .login-input:focus { border-color: var(--accent); }
+        .login-input:focus { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+        
         .primary-btn {
-            background: var(--accent); color: #000; border: none;
+            background: var(--gradient-main); color: #000; border: none;
             padding: 15px 0; width: 100%; font-weight: 900; cursor: pointer;
             font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
-            transition: transform 0.1s;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+            transition: filter 0.2s;
         }
-        .primary-btn:active { transform: scale(0.98); }
+        .primary-btn:hover { filter: brightness(1.2); }
 
         /* --- 2. Dashboard (Lobby) --- */
         #dashboardSection { display: none; max-width: 1000px; width: 100%; }
         
         .dash-header {
             display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 40px; border-bottom: 4px solid var(--accent); padding-bottom: 20px;
+            margin-bottom: 40px; padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .dash-title { font-size: 2.5rem; font-weight: 900; line-height: 1; color: #fff; letter-spacing: -1px;}
-        .user-info { color: var(--text-muted); font-size: 0.9rem; font-family: monospace;}
-        .user-highlight { color: var(--accent); font-weight: bold; margin-right: 10px; }
-        .logout-link { cursor: pointer; text-decoration: underline; margin-left: 10px; }
+        .dash-title { 
+            font-size: 2.5rem; font-weight: 900; 
+            background: var(--gradient-main); -webkit-background-clip: text; color: transparent;
+            letter-spacing: -1px;
+        }
+        .user-info { color: var(--text-dim); font-size: 0.9rem; font-family: monospace; }
+        .user-highlight { color: var(--yellow); font-weight: bold; margin-right: 10px; }
+        .logout-link { cursor: pointer; text-decoration: underline; margin-left: 10px; color: var(--red); }
 
         .project-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
         }
 
-        /* Project Card Style - Flat & Brutalist */
+        /* Card Style */
         .p-card {
-            background: #000; border: 1px solid #333;
-            padding: 25px; cursor: pointer; transition: all 0.2s ease;
-            position: relative; display: flex; flex-direction: column; justify-content: space-between;
-            min-height: 140px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            padding: 25px; cursor: pointer; transition: all 0.3s ease;
+            display: flex; flex-direction: column; justify-content: space-between;
+            min-height: 140px; position: relative; overflow: hidden;
         }
-        .p-card:hover {
-            border-color: var(--accent); transform: translateY(-4px);
-            box-shadow: 4px 4px 0px var(--accent); /* Pop shadow */
+        /* 只有左边有朱红条 */
+        .p-card::after {
+            content: ''; position: absolute; left: 0; top: 0; width: 3px; height: 100%;
+            background: var(--red); transition: width 0.3s;
         }
-        .p-card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 15px; color: #fff; line-height: 1.2;}
-        .p-card-score { font-size: 2rem; font-weight: 900; color: var(--text-muted); align-self: flex-end;}
-        .p-card-meta { font-size: 0.75rem; color: #555; font-family: monospace; margin-top: 10px;}
+        .p-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); }
+        .p-card:hover::after { width: 6px; background: var(--yellow); }
+        
+        .p-card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #fff; }
+        .p-card-score { font-size: 2.2rem; font-weight: 900; color: var(--yellow); align-self: flex-end;}
+        .p-card-meta { font-size: 0.75rem; color: #666; font-family: monospace; margin-top: 10px;}
 
         .p-card.new {
-            border: 2px dashed #444; background: transparent;
-            align-items: center; justify-content: center; color: #444;
+            border: 2px dashed #333; background: transparent; align-items: center; justify-content: center; color: #444;
         }
-        .p-card.new:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; transform: none;}
+        .p-card.new:hover { border-color: var(--yellow); color: var(--yellow); transform: none; }
+        .p-card.new::after { display: none; }
         .plus-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
 
 
@@ -100,60 +133,63 @@
         #appSection { display: none; width: 100%; max-width: 700px; margin: 0 auto; }
 
         .container {
-            background: #000; /* Pure Black for Print feel */
-            width: 100%; padding: 50px; 
-            border: 1px solid #333; position: relative;
+            width: 100%; padding: 50px; box-sizing: border-box;
         }
 
         .back-link {
-            display: inline-block; margin-bottom: 20px; color: #555; 
-            cursor: pointer; text-decoration: none; font-size: 0.85rem; font-family: monospace;
+            display: inline-block; margin-bottom: 20px; color: var(--text-dim); 
+            cursor: pointer; font-size: 0.85rem; font-family: monospace; 
+            border: 1px solid #333; padding: 5px 10px; transition: all 0.2s;
         }
-        .back-link:hover { color: var(--accent); }
+        .back-link:hover { border-color: var(--yellow); color: var(--yellow); }
 
         /* Header */
         .header {
             display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 40px; border-bottom: 2px solid #fff; padding-bottom: 20px;
+            margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px;
         }
         .project-title-display {
-            font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -1px;
-            width: 60%; line-height: 1.1;
+            font-size: 2rem; font-weight: 900; color: #fff; width: 60%; line-height: 1.1;
         }
-        /* Placeholder for screenshot text */
+        
         .text-display-placeholder {
             display: none; font-size: inherit; font-weight: inherit; color: inherit;
         }
 
-        /* Mode Switch - Styled strictly */
+        /* Mode Switch */
         .mode-container { width: 40%; display: flex; flex-direction: column; align-items: flex-end; }
         .mode-switch {
-            display: flex; background: #222; border: 1px solid #444;
+            display: flex; background: #000; border: 1px solid #444;
             padding: 2px; height: 34px; align-items: center; width: fit-content;
         }
         .mode-btn {
             background: transparent; border: none; color: #666; padding: 0 15px;
-            cursor: pointer; font-size: 0.8rem; z-index: 2; font-weight: 700; transition: color 0.3s;
+            cursor: pointer; font-size: 0.8rem; z-index: 2; font-weight: bold; transition: color 0.3s;
         }
         .mode-btn.active { color: #000; }
         .slider-bg {
             position: absolute; height: 30px; width: 50%;
-            background: var(--accent); z-index: 1;
+            background: var(--gradient-main); z-index: 1;
         }
-        /* Screenshot mode text */
         .mode-text-display {
-            display: none; font-size: 1rem; font-weight: bold; color: #fff;
-            background: #000; padding: 5px 10px; border: 1px solid #fff;
+            display: none; font-size: 1rem; font-weight: bold; color: var(--yellow);
+            background: #000; padding: 5px 10px; border: 1px solid var(--yellow);
         }
 
         /* Tabs */
-        .view-tabs { display: flex; gap: 0; margin-bottom: 40px; border-bottom: 1px solid #333; }
+        .view-tabs { display: flex; gap: 10px; margin-bottom: 40px; }
         .tab-btn {
-            padding: 10px 20px; color: #666; cursor: pointer; 
-            font-weight: bold; font-size: 0.9rem; border-bottom: 2px solid transparent;
+            flex: 1; padding: 12px; color: #666; cursor: pointer; background: #111;
+            font-weight: bold; font-size: 0.9rem; border: 1px solid #222; text-align: center;
+            transition: all 0.2s;
         }
-        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-        .tab-btn.active-team { color: #fff; border-bottom-color: #fff; }
+        .tab-btn.active { 
+            background: transparent; color: var(--yellow); border: 1px solid var(--yellow);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+        }
+        .tab-btn.active-team { 
+            background: transparent; color: var(--red); border: 1px solid var(--red); 
+        }
 
         /* Dimensions */
         .dimension-row { margin-bottom: 35px; }
@@ -161,87 +197,98 @@
             margin-bottom: 8px; font-size: 1.1rem; font-weight: 700; color: #fff; 
             display: flex; justify-content: space-between; align-items: center;
         }
-        .team-avg-display { font-size: 0.85rem; color: var(--accent); font-family: monospace; opacity: 0.8;}
+        .team-avg-display { font-size: 0.85rem; color: var(--red); font-family: monospace; }
         
-        .dim-desc {
-            font-size: 0.8rem; color: #555; margin-top: 0; margin-bottom: 12px; line-height: 1.5;
-        }
+        .dim-desc { font-size: 0.8rem; color: #666; margin-top: 0; margin-bottom: 12px; line-height: 1.5; }
         
-        /* Input styling - Minimal underline */
+        /* Input styling - Gradient Bottom Border */
         .dim-note-input {
             width: 100%; background: transparent; border: none; 
-            border-bottom: 1px solid #333; color: var(--accent); 
+            border-bottom: 1px solid #333; color: var(--yellow); 
             font-size: 0.9rem; padding: 8px 0; margin-top: 10px; outline: none;
-            font-family: inherit; transition: border-color 0.3s;
+            font-family: inherit; transition: all 0.3s;
         }
-        .dim-note-input:focus { border-bottom: 1px solid var(--accent); }
-        .dim-note-input::placeholder { color: #333; }
+        .dim-note-input:focus { 
+            border-bottom: 1px solid var(--red); 
+            background: linear-gradient(90deg, rgba(255,42,42,0.1), transparent);
+        }
+        .dim-note-input::placeholder { color: #444; font-style: italic; }
 
-        /* Score Buttons - Square and Sharp */
-        .score-selector { display: flex; gap: 2px; height: 30px; margin-bottom: 5px;}
+        /* Score Buttons - Tech Squares */
+        .score-selector { display: flex; gap: 4px; height: 32px; margin-bottom: 5px;}
         .score-btn {
             flex: 1; background: #111; border: 1px solid #333;
-            color: #666; font-size: 0.8rem; font-weight: bold;
+            color: #555; font-size: 0.8rem; font-weight: bold;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.1s;
+            transition: all 0.2s;
         }
-        .score-btn:hover { background: #222; color: #fff; }
+        .score-btn:hover { background: #222; color: #fff; border-color: #666; }
+        
+        /* Active State: Yellow for High, Red for Low */
         .score-btn.selected {
-            background: var(--accent); color: #000; border-color: var(--accent);
+            background: var(--yellow); color: #000; border-color: var(--yellow);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
         }
-        .score-btn.selected-low { background: #333; color: #fff; border-color: #555; }
-        .score-btn.team-avg-highlight { border: 2px solid #fff; z-index: 2;}
+        .score-btn.selected-low { 
+            background: var(--red); color: #fff; border-color: var(--red);
+            box-shadow: 0 0 8px rgba(255, 42, 42, 0.4);
+        }
+        .score-btn.team-avg-highlight { border: 2px solid #fff; z-index: 2; transform: scale(1.1);}
 
-        /* Extra Section (Will be hidden in screenshot) */
-        #extraSection { 
-            display: none; margin-top: 50px; padding-top: 30px; border-top: 1px solid #333; 
-        }
+        /* Extra Section */
+        #extraSection { display: none; margin-top: 50px; padding-top: 30px; border-top: 1px dashed #333; }
         .extra-group { margin-bottom: 25px; }
         .extra-label { 
-            display: block; color: #fff; font-size: 0.9rem; 
-            margin-bottom: 10px; font-weight: bold; border-left: 3px solid var(--accent); padding-left: 10px;
+            display: inline-block; color: #000; background: var(--yellow);
+            font-size: 0.8rem; padding: 2px 8px; margin-bottom: 10px; font-weight: bold; 
         }
         .extra-input {
-            width: 100%; background: #0a0a0a; border: 1px solid #333;
+            width: 100%; background: #000; border: 1px solid #333;
             color: #ccc; padding: 15px; font-size: 0.95rem; font-family: inherit;
-            box-sizing: border-box; outline: none;
+            box-sizing: border-box; outline: none; transition: border-color 0.3s;
         }
-        .extra-input:focus { border-color: #666; }
+        .extra-input:focus { border-color: var(--red); }
         textarea.extra-input { resize: vertical; min-height: 100px; }
 
         /* Actions */
         .action-area { margin-top: 50px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
-        .btn {
-            padding: 12px 25px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
-            border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-main { background: var(--accent); color: #000; }
-        .btn-main:hover { background: #fff; }
         
+        .btn {
+            padding: 12px 25px; font-weight: 900; cursor: pointer; font-size: 0.9rem;
+            border: none; text-transform: uppercase; letter-spacing: 1px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: transform 0.1s, filter 0.2s;
+        }
+        
+        .btn-main { background: var(--gradient-main); color: #000; }
+        .btn-main:hover { filter: brightness(1.1); }
+        
+        .btn-cloud { background: #222; color: var(--yellow); border: 1px solid var(--yellow); display: none;}
+        .btn-cloud:hover { background: var(--yellow); color: #000; }
+
         .btn-sec { background: transparent; border: 1px solid #444; color: #888; display: none;}
         .btn-sec:hover { border-color: #fff; color: #fff; }
-        
-        .btn-cloud { background: #333; color: #fff; display: none;}
-        .btn-cloud:hover { background: #444; }
 
-        .toggle-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); display: none;}
+        .toggle-btn { background: transparent; color: var(--text-dim); border: 1px solid #333; display: none;}
+        .toggle-btn:hover { border-color: var(--yellow); color: var(--yellow); }
 
-        /* Result - Big Typography */
+        /* Result */
         .result-section { 
             display: none; margin-top: 50px; padding-top: 40px; 
-            border-top: 4px solid #fff; text-align: center; 
+            border-top: 2px solid #fff; text-align: center; 
         }
         .total-score { 
-            font-size: 6rem; font-weight: 900; color: var(--accent); 
+            font-size: 6rem; font-weight: 900; 
+            background: var(--gradient-main); -webkit-background-clip: text; color: transparent;
             line-height: 0.9; margin: 20px 0 10px 0; letter-spacing: -3px;
         }
         .grade-badge { 
-            display: inline-block; padding: 5px 15px; background: #fff; color: #000;
+            display: inline-block; padding: 5px 20px; background: #fff; color: #000;
             font-weight: 900; font-size: 1.5rem; margin-bottom: 20px; 
             text-transform: uppercase; letter-spacing: 2px;
         }
         .comment { 
-            font-size: 1.1rem; color: #ccc; border: 1px solid #333;
+            font-size: 1.1rem; color: #ccc; border: 1px solid #333; background: rgba(255,255,255,0.05);
             padding: 20px; display: inline-block; max-width: 80%; line-height: 1.6; 
         }
 
@@ -255,11 +302,11 @@
 
 <!-- 1. Login Overlay -->
 <div id="loginOverlay">
-    <div class="login-box">
-        <div style="font-size:2rem; font-weight:900; color:#fff; margin-bottom:5px; letter-spacing:-1px;">BOOOM</div>
-        <div style="margin-bottom:30px; color:#666; font-size:0.8rem; text-transform:uppercase;">Incubation Evaluation v2.0</div>
+    <div class="login-box tech-box">
+        <div style="font-size:2.5rem; font-weight:900; color:#fff; margin-bottom:5px; letter-spacing:-2px;">BOOOM</div>
+        <div style="margin-bottom:30px; color:var(--yellow); font-size:0.8rem; text-transform:uppercase; letter-spacing:2px;">游戏发行孵化评估中心</div>
         <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME" maxlength="10">
-        <button class="primary-btn" onclick="handleLogin()">Enter System</button>
+        <button class="primary-btn" onclick="handleLogin()">进入系统 / ENTER</button>
     </div>
 </div>
 
@@ -267,10 +314,10 @@
 <div id="dashboardSection">
     <div class="dash-header">
         <div>
-            <div class="dash-title">BOOOM EVALUATION</div>
+            <div class="dash-title">BOOOM 评估中心</div>
             <div class="user-info">
-                USER: <span id="dashUser" class="user-highlight"></span>
-                <span class="logout-link" onclick="handleLogout()">LOGOUT</span>
+                OPERATOR: <span id="dashUser" class="user-highlight"></span>
+                <span class="logout-link" onclick="handleLogout()">[退出]</span>
             </div>
         </div>
     </div>
@@ -281,13 +328,13 @@
             <div>NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v2.0</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v2.1</div>
 </div>
 
 <!-- 3. Main App Section -->
 <div id="appSection">
-    <div class="container" id="captureTarget">
-        <div class="back-link" onclick="goBackToDash()">[ BACK TO DASHBOARD ]</div>
+    <div class="container tech-box" id="captureTarget">
+        <div class="back-link" onclick="goBackToDash()">&lt; 返回仪表盘</div>
 
         <div class="header">
             <!-- 截图时会自动替换为纯文本 -->
@@ -315,19 +362,19 @@
         <!-- Extra Section: Visible in UI, HIDDEN in Screenshot -->
         <div id="extraSection">
             <div class="extra-group">
-                <label class="extra-label">优点 (Pros)</label>
+                <label class="extra-label">优点</label>
                 <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">缺点 (Cons)</label>
+                <label class="extra-label">缺点</label>
                 <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的风险...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">结论 (Conclusion)</label>
+                <label class="extra-label">结论</label>
                 <input type="text" class="extra-input" id="extra-conclusion" placeholder="是否投入精力...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">提问 (Questions)</label>
+                <label class="extra-label">提问</label>
                 <textarea class="extra-input" id="extra-questions" placeholder="希望向团队提的问题..."></textarea>
             </div>
         </div>
@@ -341,13 +388,13 @@
         </div>
 
         <div class="result-section" id="resultSection">
-            <div style="color: #666; font-size: 0.8rem; letter-spacing: 2px;">TOTAL SCORE</div>
+            <div style="color: #666; font-size: 0.8rem; letter-spacing: 2px;">综合得分</div>
             <div class="total-score" id="finalScore">0.00</div>
             <div id="gradeBadge" class="grade-badge">---</div>
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v2.0</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v2.1</div>
     </div>
 </div>
 
@@ -355,7 +402,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // ✅ 真实密钥已集成
     const firebaseConfig = {
       apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
       authDomain: "booom-evaluator.firebaseapp.com",
@@ -403,7 +449,7 @@
 
     window.handleLogin = () => {
         const name = document.getElementById('loginName').value.trim();
-        if(!name) return alert("PLEASE ENTER YOUR NAME");
+        if(!name) return alert("请输入名字");
         currentUser = name;
         localStorage.setItem('booom_user', name);
         document.getElementById('loginOverlay').style.display = 'none';
@@ -411,7 +457,7 @@
     };
 
     window.handleLogout = () => {
-        if(confirm("Logout?")) {
+        if(confirm("确定要退出当前用户吗？")) {
             localStorage.removeItem('booom_user');
             currentUser = "";
             document.getElementById('dashboardSection').style.display = 'none';
@@ -434,13 +480,13 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const card = document.createElement('div');
-                card.className = 'p-card';
+                card.className = 'p-card tech-box'; // Add tech style
                 card.onclick = () => loadProject(doc.id);
                 
                 const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
                 let color = '#666';
-                if(score >= 85) color = 'var(--grade-s)';
-                else if(score >= 68) color = 'var(--grade-a)';
+                if(score >= 85) color = 'var(--yellow)';
+                else if(score >= 68) color = 'var(--red)';
                 else if(score >= 52) color = 'var(--grade-b)';
                 
                 let timeStr = "-";
@@ -453,7 +499,7 @@
                     <div class="p-card-title">${data.name}</div>
                     <div class="p-card-score" style="color:${color}">${score}</div>
                     <div class="p-card-meta">
-                        <span>BY ${data.reviewCount || 0} USERS</span>
+                        <span>👤 ${data.reviewCount || 0}人评分</span>
                         <span>${timeStr}</span>
                     </div>
                 `;
@@ -463,7 +509,7 @@
     }
 
     window.createNewProject = () => {
-        const name = prompt("PROJECT NAME:");
+        const name = prompt("请输入新项目的名称:");
         if(name && name.trim()) loadProject(name.trim());
     };
 
@@ -508,8 +554,8 @@
                 </div>
                 <ul class="dim-desc">${descHtml}</ul>
                 <div class="score-selector">${buttonsHtml}</div>
-                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 评论..." maxlength="40">
-                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--accent); font-size:0.9rem; font-family:monospace;"></div>
+                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 简评..." maxlength="40">
+                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--yellow); font-size:0.9rem; font-family:monospace;"></div>
             `;
             container.appendChild(div);
         });
@@ -572,7 +618,7 @@
     };
 
     window.calculateLocalResult = () => {
-        if(myScores.includes(null)) { alert("Incomplete Scores"); return; }
+        if(myScores.includes(null)) { alert("请先完成所有维度打分"); return; }
         const res = calculateScoreInternal(myScores);
         showResult(res, false);
         document.getElementById('btnCalculate').style.display = 'none';
@@ -590,19 +636,19 @@
             total += weights[i] * config.coeffs[safeScore]; 
         });
         let grade, color, comment;
-        if (total >= 85) { grade = 'S'; color = 'var(--grade-s)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
-        else if (total >= 68) { grade = 'A'; color = 'var(--grade-a)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
-        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = 'FAIL'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
+        if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
+        else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
+        else if (total >= 52) { grade = 'B'; color = '#4D94FF'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        else { grade = 'FAIL'; color = '#666'; comment = '核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }
 
     function showResult(res, isTeam) {
         document.getElementById('finalScore').innerText = res.total.toFixed(2);
         const badge = document.getElementById('gradeBadge');
-        badge.innerText = isTeam ? `TEAM: ${res.grade}` : `MY GRADE: ${res.grade}`;
+        badge.innerText = isTeam ? `团队综合: ${res.grade}` : `我的评级: ${res.grade}`;
         badge.style.background = res.color;
-        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
+        badge.style.color = (res.grade === 'S' || res.grade === 'A') ? '#000' : '#fff';
         document.getElementById('commentText').innerText = res.comment;
         document.getElementById('commentText').style.borderColor = res.color; 
         document.getElementById('resultSection').style.display = 'block';

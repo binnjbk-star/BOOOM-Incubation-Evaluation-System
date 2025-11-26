@@ -3,203 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v1.1</title>
+    <title>BOOOM 游戏发行孵化评估系统 v2.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #2c0b0e 0%, #8E0E00 100%);
-            --card-bg: #1e1e24;
-            --text-main: #fff;
-            --text-muted: #aaa;
-            --accent: #FFD700; 
-            --accent-text: #2c0b0e; 
-            --border-color: rgba(255, 215, 0, 0.3);
-            --button-bg: #333;
-            --grade-s: #FFD700;
-            --grade-a: #ff9f43;
-            --grade-b: #54a0ff;
-            --grade-f: #ff6b6b;
-            --border-radius: 12px;
+            /* BOOOOOOM 风格：极简、黑白、高亮酸性黄 */
+            --bg-color: #111111;
+            --card-bg: #1a1a1a;
+            --text-main: #ffffff;
+            --text-muted: #666666;
+            --accent: #E7FF00; /* 酸性黄，更具设计感 */
+            --accent-text: #000000;
+            
+            --border-color: #333333;
+            --button-bg: #222222;
+            
+            --grade-s: #E7FF00;
+            --grade-a: #FF4D4D; /* 设计感红 */
+            --grade-b: #4D94FF; /* 设计感蓝 */
+            --grade-f: #666666;
+
+            --border-radius: 4px; /* 更锋利的圆角 */
         }
 
         body {
-            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-gradient); color: var(--text-main);
-            min-height: 100vh; padding: 20px; box-sizing: border-box;
+            margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: var(--bg-color); color: var(--text-main);
+            min-height: 100vh; padding: 40px 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         /* --- 1. Login Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.9); 
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            background: var(--card-bg); padding: 40px; border-radius: var(--border-radius);
-            border: 1px solid var(--border-color); text-align: center; width: 300px;
+            background: #000; padding: 50px; border: 1px solid var(--accent);
+            text-align: center; width: 320px;
         }
         .login-input {
-            width: 100%; padding: 12px; margin: 20px 0; background: rgba(0,0,0,0.3);
-            border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 1rem;
-            text-align: center;
+            width: 100%; padding: 15px; margin: 25px 0; background: #111;
+            border: 1px solid #333; color: #fff; font-size: 1rem;
+            text-align: center; outline: none; transition: border-color 0.2s;
         }
+        .login-input:focus { border-color: var(--accent); }
         .primary-btn {
-            background: var(--accent); color: var(--accent-text); border: none;
-            padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;
-            width: 100%; font-size: 1rem;
+            background: var(--accent); color: #000; border: none;
+            padding: 15px 0; width: 100%; font-weight: 900; cursor: pointer;
+            font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
+            transition: transform 0.1s;
         }
+        .primary-btn:active { transform: scale(0.98); }
 
         /* --- 2. Dashboard (Lobby) --- */
-        #dashboardSection { display: none; max-width: 1000px; margin: 0 auto; width: 100%; }
+        #dashboardSection { display: none; max-width: 1000px; width: 100%; }
         
         .dash-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 40px; border-bottom: 4px solid var(--accent); padding-bottom: 20px;
         }
-        .dash-title { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
-        .user-info { color: var(--text-muted); font-size: 0.9rem; }
-        .user-highlight { color: #fff; font-weight: bold; margin-right: 5px; }
-        
-        /* Logout Button Style */
-        .logout-link {
-            cursor: pointer; color: var(--grade-f); margin-left: 10px; 
-            font-size: 0.8rem; text-decoration: underline; opacity: 0.8;
-        }
-        .logout-link:hover { opacity: 1; }
+        .dash-title { font-size: 2.5rem; font-weight: 900; line-height: 1; color: #fff; letter-spacing: -1px;}
+        .user-info { color: var(--text-muted); font-size: 0.9rem; font-family: monospace;}
+        .user-highlight { color: var(--accent); font-weight: bold; margin-right: 10px; }
+        .logout-link { cursor: pointer; text-decoration: underline; margin-left: 10px; }
 
         .project-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
         }
 
-        /* Project Card Style */
+        /* Project Card Style - Flat & Brutalist */
         .p-card {
-            background: rgba(30, 30, 40, 0.6); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: var(--border-radius); padding: 20px; cursor: pointer;
-            transition: all 0.2s ease; position: relative; overflow: hidden;
+            background: #000; border: 1px solid #333;
+            padding: 25px; cursor: pointer; transition: all 0.2s ease;
+            position: relative; display: flex; flex-direction: column; justify-content: space-between;
+            min-height: 140px;
         }
         .p-card:hover {
-            transform: translateY(-5px); border-color: var(--accent);
-            background: rgba(40, 40, 50, 0.8);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-color: var(--accent); transform: translateY(-4px);
+            box-shadow: 4px 4px 0px var(--accent); /* Pop shadow */
         }
-        .p-card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #fff; }
-        .p-card-score { font-size: 2.5rem; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
-        .p-card-meta { font-size: 0.8rem; color: #666; display: flex; justify-content: space-between; }
+        .p-card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 15px; color: #fff; line-height: 1.2;}
+        .p-card-score { font-size: 2rem; font-weight: 900; color: var(--text-muted); align-self: flex-end;}
+        .p-card-meta { font-size: 0.75rem; color: #555; font-family: monospace; margin-top: 10px;}
 
-        /* New Project Card */
         .p-card.new {
-            border: 2px dashed rgba(255,255,255,0.2); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; min-height: 160px;
+            border: 2px dashed #444; background: transparent;
+            align-items: center; justify-content: center; color: #444;
         }
-        .p-card.new:hover { border-color: var(--accent); color: var(--accent); }
-        .plus-icon { font-size: 3rem; opacity: 0.5; margin-bottom: 10px; }
+        .p-card.new:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; transform: none;}
+        .plus-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
 
 
         /* --- 3. Main App Section --- */
         #appSection { display: none; width: 100%; max-width: 700px; margin: 0 auto; }
 
         .container {
-            background: var(--card-bg); border-radius: var(--border-radius);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); width: 100%;
-            padding: 40px; border: 1px solid var(--border-color); position: relative;
+            background: #000; /* Pure Black for Print feel */
+            width: 100%; padding: 50px; 
+            border: 1px solid #333; position: relative;
         }
 
         .back-link {
-            display: inline-block; margin-bottom: 15px; color: #666; cursor: pointer; text-decoration: none; font-size: 0.9rem;
+            display: inline-block; margin-bottom: 20px; color: #555; 
+            cursor: pointer; text-decoration: none; font-size: 0.85rem; font-family: monospace;
         }
         .back-link:hover { color: var(--accent); }
 
-        /* Tabs */
-        .view-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #000; padding: 4px; border-radius: 8px;}
-        .tab-btn {
-            flex: 1; padding: 8px; color: #666; cursor: pointer; border-radius: 6px; 
-            font-weight: bold; text-align: center; transition: all 0.2s;
-        }
-        .tab-btn.active { background: #333; color: #fff; }
-        .tab-btn.active-team { background: var(--accent); color: var(--accent-text); }
-
         /* Header */
         .header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 30px; height: 40px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 40px; border-bottom: 2px solid #fff; padding-bottom: 20px;
         }
         .project-title-display {
-            font-size: 2rem; font-weight: 800; color: var(--accent); 
+            font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -1px;
+            width: 60%; line-height: 1.1;
+        }
+        /* Placeholder for screenshot text */
+        .text-display-placeholder {
+            display: none; font-size: inherit; font-weight: inherit; color: inherit;
         }
 
-        /* Switch */
-        .mode-container { display: flex; align-items: center; justify-content: flex-end; width: 40%; }
+        /* Mode Switch - Styled strictly */
+        .mode-container { width: 40%; display: flex; flex-direction: column; align-items: flex-end; }
         .mode-switch {
-            display: flex; background: #000; border: 1px solid var(--border-color);
-            border-radius: 6px; padding: 4px; position: relative; height: 32px; align-items: center;
+            display: flex; background: #222; border: 1px solid #444;
+            padding: 2px; height: 34px; align-items: center; width: fit-content;
         }
         .mode-btn {
-            background: transparent; border: none; color: #888; padding: 0 15px;
-            cursor: pointer; font-size: 0.85rem; z-index: 2; font-weight: 600; transition: color 0.3s;
+            background: transparent; border: none; color: #666; padding: 0 15px;
+            cursor: pointer; font-size: 0.8rem; z-index: 2; font-weight: 700; transition: color 0.3s;
         }
-        .mode-btn.active { color: var(--accent-text); }
+        .mode-btn.active { color: #000; }
         .slider-bg {
-            position: absolute; top: 4px; left: 4px; bottom: 4px; width: calc(50% - 4px);
-            background: var(--accent); border-radius: 4px;
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); z-index: 1;
+            position: absolute; height: 30px; width: 50%;
+            background: var(--accent); z-index: 1;
+        }
+        /* Screenshot mode text */
+        .mode-text-display {
+            display: none; font-size: 1rem; font-weight: bold; color: #fff;
+            background: #000; padding: 5px 10px; border: 1px solid #fff;
         }
 
+        /* Tabs */
+        .view-tabs { display: flex; gap: 0; margin-bottom: 40px; border-bottom: 1px solid #333; }
+        .tab-btn {
+            padding: 10px 20px; color: #666; cursor: pointer; 
+            font-weight: bold; font-size: 0.9rem; border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn.active-team { color: #fff; border-bottom-color: #fff; }
+
         /* Dimensions */
-        .dimension-row { margin-bottom: 25px; }
-        .dim-header { margin-bottom: 6px; font-size: 1.1rem; font-weight: bold; color: #fff; display: flex; justify-content: space-between;}
-        .team-avg-display { font-size: 0.9rem; color: var(--grade-b); font-weight: normal; }
+        .dimension-row { margin-bottom: 35px; }
+        .dim-header { 
+            margin-bottom: 8px; font-size: 1.1rem; font-weight: 700; color: #fff; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .team-avg-display { font-size: 0.85rem; color: var(--accent); font-family: monospace; opacity: 0.8;}
         
         .dim-desc {
-            font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);
-            margin-top: 0; margin-bottom: 10px; padding-left: 1.2em; line-height: 1.4;
+            font-size: 0.8rem; color: #555; margin-top: 0; margin-bottom: 12px; line-height: 1.5;
         }
+        
+        /* Input styling - Minimal underline */
         .dim-note-input {
-            width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1);
-            color: var(--accent); font-size: 0.9rem; padding: 8px 0; margin-top: 8px; outline: none;
+            width: 100%; background: transparent; border: none; 
+            border-bottom: 1px solid #333; color: var(--accent); 
+            font-size: 0.9rem; padding: 8px 0; margin-top: 10px; outline: none;
             font-family: inherit; transition: border-color 0.3s;
         }
         .dim-note-input:focus { border-bottom: 1px solid var(--accent); }
-        .dim-note-input::placeholder { color: rgba(255,255,255,0.2); font-style: italic; }
+        .dim-note-input::placeholder { color: #333; }
 
-        .score-selector { display: flex; gap: 4px; height: 36px; }
+        /* Score Buttons - Square and Sharp */
+        .score-selector { display: flex; gap: 2px; height: 30px; margin-bottom: 5px;}
         .score-btn {
-            flex: 1; background: var(--button-bg); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px; color: #888; font-size: 0.9rem; font-weight: bold;
+            flex: 1; background: #111; border: 1px solid #333;
+            color: #666; font-size: 0.8rem; font-weight: bold;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.1s;
         }
-        .score-btn:hover { background: #444; color: #fff; }
+        .score-btn:hover { background: #222; color: #fff; }
         .score-btn.selected {
-            background: var(--accent); color: var(--accent-text); border-color: var(--accent);
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+            background: var(--accent); color: #000; border-color: var(--accent);
         }
-        .score-btn.selected-low { background: #e74c3c; color: white; border-color: #c0392b; box-shadow: none; }
-        .score-btn.team-avg-highlight { border: 2px solid var(--grade-b); color: #fff; opacity: 1; }
+        .score-btn.selected-low { background: #333; color: #fff; border-color: #555; }
+        .score-btn.team-avg-highlight { border: 2px solid #fff; z-index: 2;}
 
-        /* Extra Section */
-        #extraSection { display: none; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .extra-group { margin-bottom: 20px; }
-        .extra-label { display: block; color: var(--accent); font-size: 0.9rem; margin-bottom: 8px; font-weight: bold; }
+        /* Extra Section (Will be hidden in screenshot) */
+        #extraSection { 
+            display: none; margin-top: 50px; padding-top: 30px; border-top: 1px solid #333; 
+        }
+        .extra-group { margin-bottom: 25px; }
+        .extra-label { 
+            display: block; color: #fff; font-size: 0.9rem; 
+            margin-bottom: 10px; font-weight: bold; border-left: 3px solid var(--accent); padding-left: 10px;
+        }
         .extra-input {
-            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px; color: #fff; padding: 10px; font-size: 0.95rem; font-family: inherit;
+            width: 100%; background: #0a0a0a; border: 1px solid #333;
+            color: #ccc; padding: 15px; font-size: 0.95rem; font-family: inherit;
             box-sizing: border-box; outline: none;
         }
-        textarea.extra-input { resize: vertical; min-height: 80px; }
+        .extra-input:focus { border-color: #666; }
+        textarea.extra-input { resize: vertical; min-height: 100px; }
 
         /* Actions */
-        .action-area { margin-top: 40px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
-        .toggle-btn { background: #444; color: #fff; border: 1px solid #666; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
-        .cloud-btn { background: #2e86de; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
-        .secondary-btn { background: transparent; border: 2px solid var(--accent); color: var(--accent); padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
-        .main-btn { background: linear-gradient(to bottom, #FFD700, #FFC000); color: #2c0b0e; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .action-area { margin-top: 50px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;}
+        .btn {
+            padding: 12px 25px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
+            border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-main { background: var(--accent); color: #000; }
+        .btn-main:hover { background: #fff; }
+        
+        .btn-sec { background: transparent; border: 1px solid #444; color: #888; display: none;}
+        .btn-sec:hover { border-color: #fff; color: #fff; }
+        
+        .btn-cloud { background: #333; color: #fff; display: none;}
+        .btn-cloud:hover { background: #444; }
 
-        /* Result */
-        .result-section { display: none; margin-top: 30px; padding-top: 20px; border-top: 1px dashed rgba(255, 255, 255, 0.2); text-align: center; }
-        .total-score { font-size: 4.5rem; font-weight: 800; color: #FFD700 !important; text-shadow: 0 0 25px rgba(255, 215, 0, 0.2); line-height: 1; margin: 10px 0; }
-        .grade-badge { display: inline-block; padding: 6px 16px; border-radius: 6px; font-weight: 900; font-size: 1.5rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
-        .comment { font-size: 1rem; color: #ddd !important; background: #333; padding: 12px; border-radius: 6px; display: inline-block; max-width: 80%; line-height: 1.5; border: 1px solid #444; }
+        .toggle-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); display: none;}
 
-        .footer { margin-top: 50px; text-align: center; font-size: 0.7rem; color: rgba(255,255,255,0.15); }
+        /* Result - Big Typography */
+        .result-section { 
+            display: none; margin-top: 50px; padding-top: 40px; 
+            border-top: 4px solid #fff; text-align: center; 
+        }
+        .total-score { 
+            font-size: 6rem; font-weight: 900; color: var(--accent); 
+            line-height: 0.9; margin: 20px 0 10px 0; letter-spacing: -3px;
+        }
+        .grade-badge { 
+            display: inline-block; padding: 5px 15px; background: #fff; color: #000;
+            font-weight: 900; font-size: 1.5rem; margin-bottom: 20px; 
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .comment { 
+            font-size: 1.1rem; color: #ccc; border: 1px solid #333;
+            padding: 20px; display: inline-block; max-width: 80%; line-height: 1.6; 
+        }
+
+        .footer { 
+            margin-top: 60px; text-align: center; font-size: 0.7rem; 
+            color: #444; font-family: monospace; text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -207,10 +256,10 @@
 <!-- 1. Login Overlay -->
 <div id="loginOverlay">
     <div class="login-box">
-        <div style="font-size:1.5rem; font-weight:bold; color:#FFD700; margin-bottom:10px;">BOOOM</div>
-        <div style="margin-bottom:20px; color:#aaa;">暴造游戏发行孵化评估系统 v1.1</div>
-        <input type="text" id="loginName" class="login-input" placeholder="请输入你的名字/昵称" maxlength="10">
-        <button class="primary-btn" onclick="handleLogin()">进入系统</button>
+        <div style="font-size:2rem; font-weight:900; color:#fff; margin-bottom:5px; letter-spacing:-1px;">BOOOM</div>
+        <div style="margin-bottom:30px; color:#666; font-size:0.8rem; text-transform:uppercase;">Incubation Evaluation v2.0</div>
+        <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME" maxlength="10">
+        <button class="primary-btn" onclick="handleLogin()">Enter System</button>
     </div>
 </div>
 
@@ -218,102 +267,108 @@
 <div id="dashboardSection">
     <div class="dash-header">
         <div>
-            <div class="dash-title">BOOOM游戏评估系统</div>
+            <div class="dash-title">BOOOM EVALUATION</div>
             <div class="user-info">
-                当前用户: <span id="dashUser" class="user-highlight"></span>
-                <span class="logout-link" onclick="handleLogout()">[退出]</span>
+                USER: <span id="dashUser" class="user-highlight"></span>
+                <span class="logout-link" onclick="handleLogout()">LOGOUT</span>
             </div>
         </div>
     </div>
     <div class="project-grid" id="projectGrid">
-        <!-- JS will populate cards here -->
+        <!-- JS populated -->
         <div class="p-card new" onclick="createNewProject()">
             <div class="plus-icon">+</div>
-            <div>新建评估项目</div>
+            <div>NEW PROJECT</div>
         </div>
     </div>
+    <div class="footer">© BOOOM Incubation Evaluation System v2.0</div>
 </div>
 
 <!-- 3. Main App Section -->
 <div id="appSection">
     <div class="container" id="captureTarget">
-        <div class="back-link" onclick="goBackToDash()">← 返回首页</div>
+        <div class="back-link" onclick="goBackToDash()">[ BACK TO DASHBOARD ]</div>
 
         <div class="header">
-            <div class="project-title-display" id="displayProjectName"></div>
+            <!-- 截图时会自动替换为纯文本 -->
+            <input type="text" class="project-title-display" id="displayProjectNameInput" style="background:transparent; border:none; outline:none; width:60%;" readonly>
+            <div class="project-title-display text-display-placeholder" id="displayProjectNameStatic"></div>
+
             <div class="mode-container">
                 <div class="mode-switch" id="modeSwitchControl" onclick="toggleMode()">
-                    <div class="slider-bg" id="switchBg"></div>
-                    <button class="mode-btn active" id="btnA">玩法驱动</button>
-                    <button class="mode-btn" id="btnB">叙事驱动</button>
+                    <div class="slider-bg" id="switchBg" style="position:absolute; left:2px; top:2px; width:50%; height:30px; transition: transform 0.3s;"></div>
+                    <button class="mode-btn active" id="btnA" style="position:relative;">玩法驱动</button>
+                    <button class="mode-btn" id="btnB" style="position:relative;">叙事驱动</button>
                 </div>
+                <!-- 截图专用显示 -->
+                <div class="mode-text-display" id="modeTextDisplay"></div>
             </div>
         </div>
 
         <div class="view-tabs">
             <div class="tab-btn active" id="tabMy" onclick="switchTab('my')">我的评分</div>
-            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合分 (查看)</div>
+            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合</div>
         </div>
 
         <div id="dimensions-container"></div>
 
+        <!-- Extra Section: Visible in UI, HIDDEN in Screenshot -->
         <div id="extraSection">
             <div class="extra-group">
-                <label class="extra-label">优点</label>
-                <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
+                <label class="extra-label">优点 (Pros)</label>
+                <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">缺点</label>
-                <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的明显缺点与潜在风险">
+                <label class="extra-label">缺点 (Cons)</label>
+                <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的风险...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">结论</label>
-                <input type="text" class="extra-input" id="extra-conclusion" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
+                <label class="extra-label">结论 (Conclusion)</label>
+                <input type="text" class="extra-input" id="extra-conclusion" placeholder="是否投入精力...">
             </div>
             <div class="extra-group">
-                <label class="extra-label">希望向团队提的问题</label>
-                <textarea class="extra-input" id="extra-questions" placeholder="在给每个维度做出判断时，如果你觉得它缺少一些内容，在 BP 或 Demo 中没有展示，那它就可以形成你希望问开发者的问题。由此诞生的问题一定会围绕在我们在乎的维度里。"></textarea>
+                <label class="extra-label">提问 (Questions)</label>
+                <textarea class="extra-input" id="extra-questions" placeholder="希望向团队提的问题..."></textarea>
             </div>
         </div>
 
         <div class="action-area" data-html2canvas-ignore="true">
-            <button class="toggle-btn" id="btnAddComment" onclick="toggleExtraSection()">+ 新增评价与提问</button>
-            <button class="main-btn" id="btnCalculate" onclick="calculateLocalResult()">完成评分</button>
+            <button class="btn toggle-btn" id="btnAddComment" onclick="toggleExtraSection()">+ 评价与提问</button>
+            <button class="btn btn-main" id="btnCalculate" onclick="calculateLocalResult()">完成评分</button>
             
-            <button class="cloud-btn" id="btnUpload" onclick="uploadToCloud()">☁️ 提交并同步</button>
-            <button class="secondary-btn" id="btnSaveImg" onclick="saveImage()">保存报告图片</button>
+            <button class="btn btn-cloud" id="btnUpload" onclick="uploadToCloud()">☁️ 提交同步</button>
+            <button class="btn btn-sec" id="btnSaveImg" onclick="saveImage()">保存图片</button>
         </div>
 
         <div class="result-section" id="resultSection">
-            <div style="color: #888; font-size: 0.9rem; text-transform: uppercase;">综合得分</div>
+            <div style="color: #666; font-size: 0.8rem; letter-spacing: 2px;">TOTAL SCORE</div>
             <div class="total-score" id="finalScore">0.00</div>
             <div id="gradeBadge" class="grade-badge">---</div>
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v1.1</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v2.0</div>
     </div>
 </div>
 
 <script type="module">
-    // --- Firebase Setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // ⚠️⚠️⚠️ 务必在此处填入你自己的 Firebase 密钥 ⚠️⚠️⚠️
+    // ✅ 真实密钥已集成
     const firebaseConfig = {
-        apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
-        authDomain: "booom-evaluator.firebaseapp.com",
-        projectId: "booom-evaluator",
-        storageBucket: "booom-evaluator.firebasestorage.app",
-        messagingSenderId: "1047845640626",
-        appId: "1:1047845640626:web:909ad83b5d1ad7c77bacab"
+      apiKey: "AIzaSyA_bnMNDsBud8xRawWDBYdzuYc8DeG7rQE",
+      authDomain: "booom-evaluator.firebaseapp.com",
+      projectId: "booom-evaluator",
+      storageBucket: "booom-evaluator.firebasestorage.app",
+      messagingSenderId: "1047845640626",
+      appId: "1:1047845640626:web:909ad83b5d1ad7c77bacab"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- State & Config ---
+    // --- Config ---
     let currentUser = "";
     let currentProject = "";
     let currentTab = "my";
@@ -338,9 +393,7 @@
     let myScores = [null, null, null, null, null, null, null]; 
     let extraSectionVisible = false;
 
-    // --- Login & Dashboard Logic ---
-
-    // Check Local Storage
+    // --- Dashboard Logic ---
     const savedName = localStorage.getItem('booom_user');
     if(savedName) {
         currentUser = savedName;
@@ -348,19 +401,17 @@
         initDashboard();
     }
 
-    // Attach to window so HTML can call it
     window.handleLogin = () => {
         const name = document.getElementById('loginName').value.trim();
-        if(!name) return alert("请输入名字");
+        if(!name) return alert("PLEASE ENTER YOUR NAME");
         currentUser = name;
         localStorage.setItem('booom_user', name);
         document.getElementById('loginOverlay').style.display = 'none';
         initDashboard();
     };
 
-    // New Logout Function
     window.handleLogout = () => {
-        if(confirm("确定要退出当前用户吗？")) {
+        if(confirm("Logout?")) {
             localStorage.removeItem('booom_user');
             currentUser = "";
             document.getElementById('dashboardSection').style.display = 'none';
@@ -373,17 +424,12 @@
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('dashUser').innerText = currentUser;
         
-        // Listen to Projects
         const q = query(collection(db, "projects"), orderBy("lastUpdate", "desc"));
         onSnapshot(q, (snapshot) => {
             const grid = document.getElementById('projectGrid');
-            const newCard = grid.querySelector('.p-card.new'); // Keep reference to new card
-            
-            // Clear existing projects but keep 'new' card structure in memory
+            const newCard = grid.querySelector('.p-card.new');
             const cards = Array.from(grid.children);
-            cards.forEach(c => {
-                if(!c.classList.contains('new')) c.remove();
-            });
+            cards.forEach(c => { if(!c.classList.contains('new')) c.remove(); });
 
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -392,12 +438,11 @@
                 card.onclick = () => loadProject(doc.id);
                 
                 const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
-                let color = '#888';
+                let color = '#666';
                 if(score >= 85) color = 'var(--grade-s)';
                 else if(score >= 68) color = 'var(--grade-a)';
                 else if(score >= 52) color = 'var(--grade-b)';
-                else if(score < 52 && score > 0) color = 'var(--grade-f)';
-
+                
                 let timeStr = "-";
                 if(data.lastUpdate) {
                     const date = data.lastUpdate.toDate();
@@ -408,30 +453,27 @@
                     <div class="p-card-title">${data.name}</div>
                     <div class="p-card-score" style="color:${color}">${score}</div>
                     <div class="p-card-meta">
-                        <span>👥 ${data.reviewCount || 0}人评分</span>
-                        <span>🕒 ${timeStr}</span>
+                        <span>BY ${data.reviewCount || 0} USERS</span>
+                        <span>${timeStr}</span>
                     </div>
                 `;
-                // Insert before the last card (New Project card)
                 grid.insertBefore(card, grid.lastElementChild);
             });
         });
     }
 
     window.createNewProject = () => {
-        const name = prompt("请输入新项目的名称:");
-        if(name && name.trim()) {
-            loadProject(name.trim());
-        }
+        const name = prompt("PROJECT NAME:");
+        if(name && name.trim()) loadProject(name.trim());
     };
 
     window.loadProject = (projName) => {
         currentProject = projName;
         document.getElementById('dashboardSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
-        document.getElementById('displayProjectName').innerText = currentProject;
         
-        // Init logic
+        document.getElementById('displayProjectNameInput').value = currentProject;
+        
         renderInputs();
         loadMyReview();
         listenTeamData();
@@ -440,17 +482,12 @@
     window.goBackToDash = () => {
         document.getElementById('appSection').style.display = 'none';
         document.getElementById('dashboardSection').style.display = 'block';
-        // Reset state
-        currentTab = 'my';
-        teamData = null;
-        myScores = [null, null, null, null, null, null, null];
+        currentTab = 'my'; teamData = null; myScores = [null, null, null, null, null, null, null];
         resetToUncalculatedState();
-        document.getElementById('tabMy').click(); // Switch back to My tab
+        document.getElementById('tabMy').click();
     };
 
-
-    // --- Core App Logic ---
-
+    // --- Core Logic ---
     function renderInputs() {
         const container = document.getElementById('dimensions-container');
         container.innerHTML = '';
@@ -471,7 +508,8 @@
                 </div>
                 <ul class="dim-desc">${descHtml}</ul>
                 <div class="score-selector">${buttonsHtml}</div>
-                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="请简单写下给分理由..." maxlength="40">
+                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 评论..." maxlength="40">
+                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--accent); font-size:0.9rem; font-family:monospace;"></div>
             `;
             container.appendChild(div);
         });
@@ -486,22 +524,15 @@
     };
 
     function updateUIFromScores() {
-        document.querySelectorAll('.score-btn').forEach(b => {
-            b.classList.remove('selected', 'selected-low', 'team-avg-highlight');
-        });
-
+        document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected', 'selected-low', 'team-avg-highlight'));
         if(currentTab === 'my') {
             myScores.forEach((s, idx) => {
                 if(s !== null) {
                     const btn = document.getElementById(`btn-${idx}-${s}`);
-                    if(btn) {
-                        btn.classList.add('selected');
-                        if(s<=5) btn.classList.add('selected-low');
-                    }
+                    if(btn) { btn.classList.add('selected'); if(s<=5) btn.classList.add('selected-low'); }
                 }
             });
-        } 
-        else if (currentTab === 'team' && teamData && teamData.averages) {
+        } else if (currentTab === 'team' && teamData && teamData.averages) {
             teamData.averages.forEach((avg, idx) => {
                 const rounded = Math.round(avg);
                 if(rounded >= 1 && rounded <= 10) {
@@ -512,26 +543,22 @@
         }
     }
 
-    // --- Tab Switching ---
     window.switchTab = (tab) => {
         currentTab = tab;
         document.getElementById('tabMy').className = tab === 'my' ? 'tab-btn active' : 'tab-btn';
         document.getElementById('tabTeam').className = tab === 'team' ? 'tab-btn active-team' : 'tab-btn';
-
         const inputs = document.querySelectorAll('input, textarea');
         const calcBtn = document.getElementById('btnCalculate');
         const uploadBtn = document.getElementById('btnUpload');
         const saveImgBtn = document.getElementById('btnSaveImg');
+        const addCommentBtn = document.getElementById('btnAddComment');
         const container = document.getElementById('dimensions-container');
 
         if(tab === 'team') {
             inputs.forEach(el => el.disabled = true);
-            container.style.opacity = '0.7';
-            calcBtn.style.display = 'none';
-            uploadBtn.style.display = 'none';
-            saveImgBtn.style.display = 'none';
-            document.getElementById('btnAddComment').style.display = 'none';
-            
+            container.style.opacity = '0.6';
+            calcBtn.style.display = 'none'; uploadBtn.style.display = 'none'; 
+            saveImgBtn.style.display = 'none'; addCommentBtn.style.display = 'none';
             if(teamData && teamData.averages) {
                 const res = calculateScoreInternal(teamData.averages);
                 showResult(res, true);
@@ -544,10 +571,8 @@
         updateUIFromScores();
     };
 
-    // --- Calculation ---
-
     window.calculateLocalResult = () => {
-        if(myScores.includes(null)) { alert("请先完成所有维度打分"); return; }
+        if(myScores.includes(null)) { alert("Incomplete Scores"); return; }
         const res = calculateScoreInternal(myScores);
         showResult(res, false);
         document.getElementById('btnCalculate').style.display = 'none';
@@ -564,21 +589,20 @@
             const safeScore = Math.max(1, Math.min(10, intScore));
             total += weights[i] * config.coeffs[safeScore]; 
         });
-        
         let grade, color, comment;
-        if (total >= 85) { grade = 'S 级'; color = 'var(--grade-s)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
-        else if (total >= 68) { grade = 'A 级'; color = 'var(--grade-a)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
-        else if (total >= 52) { grade = 'B 级'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = '淘汰'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
+        if (total >= 85) { grade = 'S'; color = 'var(--grade-s)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
+        else if (total >= 68) { grade = 'A'; color = 'var(--grade-a)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
+        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        else { grade = 'FAIL'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
         return { total, grade, color, comment };
     }
 
     function showResult(res, isTeam) {
         document.getElementById('finalScore').innerText = res.total.toFixed(2);
         const badge = document.getElementById('gradeBadge');
-        badge.innerText = isTeam ? `团队综合: ${res.grade}` : res.grade;
+        badge.innerText = isTeam ? `TEAM: ${res.grade}` : `MY GRADE: ${res.grade}`;
         badge.style.background = res.color;
-        badge.style.color = (res.grade.includes('S') || res.grade.includes('A')) ? '#2c0b0e' : '#fff';
+        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
         document.getElementById('commentText').innerText = res.comment;
         document.getElementById('commentText').style.borderColor = res.color; 
         document.getElementById('resultSection').style.display = 'block';
@@ -595,7 +619,6 @@
         extraSectionVisible = false;
     }
 
-    // --- Firebase Logic ---
     async function loadMyReview() {
         try {
             const docRef = doc(db, "projects", currentProject, "reviews", currentUser);
@@ -604,15 +627,12 @@
                 const data = docSnap.data();
                 myScores = data.scores;
                 currentMode = data.mode || 'A';
-                
-                // Restore Text
                 data.comments.forEach((txt, i) => { if(i<7) document.getElementById(`dim-input-${i}`).value = txt; });
                 document.getElementById('extra-pros').value = data.extra.pros || "";
                 document.getElementById('extra-cons').value = data.extra.cons || "";
                 document.getElementById('extra-conclusion').value = data.extra.conclusion || "";
                 document.getElementById('extra-questions').value = data.extra.questions || "";
-
-                // Restore Mode UI
+                
                 if(currentMode === 'A') {
                     document.getElementById('switchBg').style.transform = 'translateX(0)';
                     document.getElementById('btnA').classList.add('active');
@@ -624,13 +644,12 @@
                 }
                 updateUIFromScores();
             }
-        } catch(e) { console.log("New project or no review yet"); }
+        } catch(e) { }
     }
 
     window.uploadToCloud = async () => {
         const btn = document.getElementById('btnUpload');
-        btn.innerText = "上传中..."; btn.disabled = true;
-
+        btn.innerText = "..."; btn.disabled = true;
         try {
             const dimComments = [];
             for(let i=0; i<7; i++) dimComments.push(document.getElementById(`dim-input-${i}`).value);
@@ -640,19 +659,14 @@
                 conclusion: document.getElementById('extra-conclusion').value,
                 questions: document.getElementById('extra-questions').value
             };
-
             await setDoc(doc(db, "projects", currentProject, "reviews", currentUser), {
                 user: currentUser, scores: myScores, mode: currentMode,
                 comments: dimComments, extra: extraData, updatedAt: serverTimestamp()
             });
-
             await aggregateProjectData();
-
-            btn.innerText = "✅ 已保存";
-            setTimeout(() => { btn.innerText = "☁️ 提交并同步"; btn.disabled = false; }, 2000);
-        } catch (e) {
-            console.error(e); alert("上传失败"); btn.innerText = "❌ 重试"; btn.disabled = false;
-        }
+            btn.innerText = "SAVED";
+            setTimeout(() => { btn.innerText = "☁️ 提交同步"; btn.disabled = false; }, 2000);
+        } catch (e) { console.error(e); alert("Error"); btn.innerText = "RETRY"; btn.disabled = false; }
     };
 
     async function aggregateProjectData() {
@@ -662,7 +676,6 @@
             const s = doc.data().scores;
             if(s && s.length === 7) { count++; s.forEach((val, i) => sums[i] += val); }
         });
-
         if(count > 0) {
             const averages = sums.map(s => s / count);
             const totalAvg = calculateScoreInternal(averages).total;
@@ -678,13 +691,12 @@
             if(doc.exists()) {
                 teamData = doc.data();
                 teamData.averages.forEach((avg, i) => {
-                    document.getElementById(`team-avg-${i}`).innerText = `均分: ${avg.toFixed(1)}`;
+                    document.getElementById(`team-avg-${i}`).innerText = `AVG: ${avg.toFixed(1)}`;
                 });
             }
         });
     }
 
-    // --- Helpers ---
     window.toggleExtraSection = () => {
         extraSectionVisible = !extraSectionVisible;
         document.getElementById('extraSection').style.display = extraSectionVisible ? 'block' : 'none';
@@ -705,8 +717,50 @@
     };
 
     window.saveImage = () => {
-        html2canvas(document.getElementById('captureTarget'), { backgroundColor: '#1e1e24', scale: 2 }).then(c => {
-            const a = document.createElement('a'); a.download = `${currentProject}_评估.png`; a.href = c.toDataURL(); a.click();
+        const target = document.getElementById('captureTarget');
+        
+        // 1. Hide Extra Section & Desc
+        const extraSec = document.getElementById('extraSection');
+        const originalExtraDisplay = extraSec.style.display;
+        extraSec.style.display = 'none';
+        
+        document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'none');
+
+        // 2. Swap Inputs for Text
+        const nameInput = document.getElementById('displayProjectNameInput');
+        const nameStatic = document.getElementById('displayProjectNameStatic');
+        nameStatic.innerText = nameInput.value;
+        nameInput.style.display = 'none'; nameStatic.style.display = 'block';
+
+        const modeControl = document.getElementById('modeSwitchControl');
+        const modeDisplay = document.getElementById('modeTextDisplay');
+        modeDisplay.innerText = currentMode === 'A' ? "TYPE: GAMEPLAY" : "TYPE: NARRATIVE";
+        modeControl.style.display = 'none'; modeDisplay.style.display = 'block';
+
+        const dimInputs = document.querySelectorAll('.dim-note-input');
+        dimInputs.forEach((inp, idx) => {
+            const disp = document.getElementById(`dim-disp-${idx}`);
+            if(inp.value.trim() !== "") {
+                disp.innerText = "// " + inp.value; disp.style.display = 'block'; inp.style.display = 'none';
+            } else {
+                inp.style.display = 'none'; disp.style.display = 'none';
+            }
+        });
+
+        html2canvas(target, { backgroundColor: '#000', scale: 2 }).then(c => {
+            // 3. Revert
+            extraSec.style.display = originalExtraDisplay;
+            document.querySelectorAll('.dim-desc').forEach(e => e.style.display = 'block');
+            
+            nameInput.style.display = 'block'; nameStatic.style.display = 'none';
+            modeControl.style.display = 'flex'; modeDisplay.style.display = 'none';
+            
+            dimInputs.forEach((inp, idx) => {
+                const disp = document.getElementById(`dim-disp-${idx}`);
+                inp.style.display = 'block'; disp.style.display = 'none';
+            });
+
+            const a = document.createElement('a'); a.download = `${currentProject}_EVAL.png`; a.href = c.toDataURL(); a.click();
         });
     };
 </script>

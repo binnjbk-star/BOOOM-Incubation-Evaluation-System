@@ -114,7 +114,7 @@
         }
         .score-btn.selected-low { background: #e74c3c; color: white; border-color: #c0392b; box-shadow: none; }
 
-        /* Extra Section (Comments & Questions) */
+        /* Extra Section */
         #extraSection { display: none; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         .extra-group { margin-bottom: 20px; }
         .extra-label { display: block; color: var(--accent); font-size: 0.9rem; margin-bottom: 8px; font-weight: bold; }
@@ -139,7 +139,7 @@
         .toggle-btn {
             background: #444; color: #fff; border: 1px solid #666;
             padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;
-            display: none; /* Initially Hidden */
+            display: none; 
         }
         .secondary-btn {
             background: transparent; border: 2px solid var(--accent); color: var(--accent);
@@ -201,22 +201,23 @@
 
     <div id="dimensions-container"></div>
 
-    <!-- Additional Comments Section (Initially Hidden) -->
+    <!-- Additional Comments Section -->
     <div id="extraSection">
+        <!-- 修正了ID名，使其与标签逻辑一致，方便代码维护 -->
         <div class="extra-group">
             <label class="extra-label">优点</label>
-            <input type="text" class="extra-input" id="extra-conclusion" maxlength="40" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
-            <div class="text-display-placeholder" id="disp-conclusion"></div>
-        </div>
-        <div class="extra-group">
-            <label class="extra-label">缺点</label>
-            <input type="text" class="extra-input" id="extra-pros" maxlength="40" placeholder="该项目存在的明显缺点与潜在风险">
+            <input type="text" class="extra-input" id="extra-pros" maxlength="40" placeholder="该项目的亮点如何，仅以是否能够建立商业回报判断">
             <div class="text-display-placeholder" id="disp-pros"></div>
         </div>
         <div class="extra-group">
-            <label class="extra-label">结论</label>
-            <input type="text" class="extra-input" id="extra-cons" maxlength="30" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
+            <label class="extra-label">缺点</label>
+            <input type="text" class="extra-input" id="extra-cons" maxlength="40" placeholder="该项目存在的明显缺点与潜在风险">
             <div class="text-display-placeholder" id="disp-cons"></div>
+        </div>
+        <div class="extra-group">
+            <label class="extra-label">结论</label>
+            <input type="text" class="extra-input" id="extra-conclusion" maxlength="30" placeholder="以发行/投资是否继续投入精力做出个人的结果分析">
+            <div class="text-display-placeholder" id="disp-conclusion"></div>
         </div>
         <div class="extra-group">
             <label class="extra-label">希望向团队提的问题</label>
@@ -226,7 +227,6 @@
     </div>
 
     <div class="action-area" data-html2canvas-ignore="true">
-        <!-- Note: Buttons visibility managed by JS -->
         <button class="toggle-btn" id="btnAddComment" onclick="toggleExtraSection()">+ 新增评价与提问</button>
         <button class="main-btn" id="btnCalculate" onclick="revealResult()">生成评估报告</button>
         <button class="secondary-btn" id="btnSaveImg" onclick="saveImage()">保存为图片</button>
@@ -295,6 +295,7 @@
                 desc: ["游戏的卖相是否够好，有无服务玩家的意识", "可能会引发争议和舆论风险<——>成为爆款的可能性", "游戏的传播性如何，是否有能被大众讨论的爆点，是否更容易被直播的形式传播", "你认为游戏是否存在明显的跨文化障碍"]
             }
         ],
+        // 已按照你的需求更新了权重
         weightsA: [26, 12, 10, 13, 19, 14, 6],
         weightsB: [10, 28, 12, 11, 17, 15, 7]
     };
@@ -340,13 +341,9 @@
     // --- State Reset Helper ---
     function resetToUncalculatedState() {
         resultSection.style.display = 'none';
-        
-        // Reset Buttons visibility
         btnCalculate.style.display = 'block';
         btnAddComment.style.display = 'none';
         btnSaveImg.style.display = 'none';
-        
-        // Hide extra section to force a clean flow
         extraSection.style.display = 'none';
         extraSectionVisible = false;
     }
@@ -354,7 +351,6 @@
     // --- Interaction ---
     window.selectScore = (dimIndex, scoreVal) => {
         scores[dimIndex] = scoreVal;
-        
         const row = container.children[dimIndex];
         const buttons = row.querySelectorAll('.score-btn');
         buttons.forEach((btn, idx) => {
@@ -365,8 +361,6 @@
                 if(i<=5) btn.classList.add('selected-low');
             }
         });
-        
-        // User modified a score -> Result is invalid -> Reset state
         resetToUncalculatedState();
     };
 
@@ -382,7 +376,6 @@
             switchBg.style.transform = 'translateX(100%)';
             btnA.classList.remove('active'); btnB.classList.add('active');
         }
-        // Mode changed -> Result is invalid -> Reset state
         resetToUncalculatedState();
     };
 
@@ -393,7 +386,6 @@
 
     window.revealResult = () => {
         if(scores.includes(null)) { alert("请先完成所有 7 个维度的打分。"); return; }
-        
         const res = calculateLogic();
         document.getElementById('finalScore').innerText = res.total.toFixed(2);
         const badge = document.getElementById('gradeBadge');
@@ -403,15 +395,13 @@
         badge.style.color = (res.grade.includes('S') || res.grade.includes('A')) ? '#2c0b0e' : '#fff';
         comment.innerText = res.comment;
         comment.style.borderColor = res.color; 
-        
         resultSection.style.display = 'block';
-        
-        // SUCCESS STATE: Hide Generate, Show Actions
         btnCalculate.style.display = 'none';
         btnAddComment.style.display = 'inline-block';
         btnSaveImg.style.display = 'inline-block';
     };
 
+    // 已按照你的需求更新了S/A/B级的判定分数
     function calculateLogic() {
         let total = 0;
         const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
@@ -432,7 +422,6 @@
         const modeControl = document.getElementById('modeSwitchControl');
         const displayMode = document.getElementById('modeTextDisplay');
         
-        // 1. Swap Display
         const pName = inputName.value || "未命名项目";
         displayName.innerText = pName;
         inputName.style.display = 'none';
@@ -443,11 +432,9 @@
         modeControl.style.display = 'none';
         displayMode.style.display = 'block';
 
-        // Hide Descriptions
         const allDescs = document.querySelectorAll('.dim-desc');
         allDescs.forEach(el => el.style.display = 'none');
 
-        // Process Inputs
         const dimInputs = document.querySelectorAll('.dim-note-input');
         dimInputs.forEach((inp, idx) => {
             const disp = document.getElementById(`dim-disp-${idx}`);
@@ -461,9 +448,9 @@
             }
         });
 
-        // Process Extra Section
-        const extraIds = ['extra-conclusion', 'extra-pros', 'extra-cons', 'extra-questions'];
-        const extraDispIds = ['disp-conclusion', 'disp-pros', 'disp-cons', 'disp-questions'];
+        // 这里的 ID 已经按照 HTML 中的修改进行了同步
+        const extraIds = ['extra-pros', 'extra-cons', 'extra-conclusion', 'extra-questions'];
+        const extraDispIds = ['disp-pros', 'disp-cons', 'disp-conclusion', 'disp-questions'];
         
         if (extraSectionVisible) {
             extraIds.forEach((id, idx) => {
@@ -488,7 +475,6 @@
             scale: 2,
             useCORS: true
         }).then(canvas => {
-            // Revert
             inputName.style.display = 'block';
             displayName.style.display = 'none';
             modeControl.style.display = 'flex';
@@ -506,7 +492,6 @@
                     const inp = document.getElementById(id);
                     const disp = document.getElementById(extraDispIds[idx]);
                     const parentGroup = inp.parentElement;
-                    
                     inp.style.display = 'block';
                     disp.style.display = 'none';
                     parentGroup.style.display = 'block'; 

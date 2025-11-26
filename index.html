@@ -3,218 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v3.0</title>
+    <title>BOOOM 游戏发行孵化评估系统 v3.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            /* 工业科幻亮色系 v3.0 */
-            --bg-color: #F0F2F5;
+            /* v3.2 工业科幻亮色系 - 高对比度修正版 */
+            --bg-color: #F2F3F5;
             --card-bg: #FFFFFF;
             
-            --black: #111111;
-            --yellow: #FFD700; 
-            --red: #FF3333;    
+            /* 核心三色 */
+            --black: #080808;
+            --yellow: #FFD700; /* 主高亮 */
+            --red: #FF2222;    /* 辅助/警示 */
             
-            --text-main: #111111;
-            --text-dim: #666666;
+            --text-main: #000000;
+            --text-dim: #555555;
             
-            --border: 1px solid #111111;
-            --border-thick: 2px solid #111111;
+            --border: 2px solid #000000;
             
-            /* Priority Colors */
-            --p0-bg: #FFD700;
-            --p1-bg: #E0E0E0;
-            --p2-bg: #FFF;
+            --grade-s: #FFD700;
+            --grade-a: #FF2222;
+            --grade-b: #4D94FF;
+            --grade-f: #999999;
         }
 
         body {
             margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
             background-color: var(--bg-color);
+            /* 工业网格背景 */
             background-image: 
-                linear-gradient(#E0E0E0 1px, transparent 1px),
-                linear-gradient(90deg, #E0E0E0 1px, transparent 1px);
-            background-size: 30px 30px;
+                linear-gradient(#DCDCDC 1px, transparent 1px),
+                linear-gradient(90deg, #DCDCDC 1px, transparent 1px);
+            background-size: 40px 40px;
             color: var(--text-main);
             min-height: 100vh; padding: 40px 20px; box-sizing: border-box;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- 通用组件 --- */
+        /* --- 基础组件 --- */
         .tech-box {
             background: var(--card-bg); border: var(--border);
-            box-shadow: 5px 5px 0px rgba(0,0,0,0.1); position: relative;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.15); position: relative;
         }
-        .tech-box::after {
-            content: ''; position: absolute; bottom: -6px; right: -6px; 
-            width: 0; height: 0; border-left: 15px solid transparent; border-bottom: 15px solid var(--black);
+        /* 装饰：左上角黄色方块 */
+        .tech-box::before {
+            content: ''; position: absolute; top: -4px; left: -4px; width: 12px; height: 12px;
+            background: var(--yellow); border: 2px solid var(--black); z-index: 5;
         }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 12px 24px; font-weight: 900; cursor: pointer; font-size: 0.9rem;
+            border: 2px solid var(--black); text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.1s; position: relative; background: #fff; color: #000;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+        }
+        .btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px rgba(0,0,0,0.3); }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+        
+        .btn-primary { background: var(--yellow); }
+        .btn-danger { background: var(--red); color: #fff; border-color: #000; }
+        .btn-dark { background: var(--black); color: #fff; }
 
         /* --- 1. Login Modal --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            padding: 60px 40px; width: 340px; text-align: center;
-            border: var(--border-thick); background: #fff;
-            box-shadow: 10px 10px 0px var(--yellow);
+            padding: 50px; width: 320px; text-align: center; border: 3px solid var(--black);
+            background: #fff; box-shadow: 15px 15px 0px var(--yellow);
         }
         .login-input {
             width: 100%; padding: 15px; margin: 30px 0; background: #fff;
-            border: 2px solid #eee; color: var(--black); font-size: 1.1rem; font-weight: bold;
-            text-align: center; outline: none; transition: all 0.3s;
+            border: 2px solid #ccc; color: var(--black); font-size: 1.1rem; font-weight: bold;
+            text-align: center; outline: none;
         }
-        .login-input:focus { border-color: var(--black); border-bottom: 4px solid var(--yellow); }
-        
-        .primary-btn {
-            background: var(--yellow); color: var(--black); border: var(--border);
-            padding: 15px 0; width: 100%; font-weight: 900; cursor: pointer;
-            font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
-            box-shadow: 4px 4px 0px var(--black); transition: transform 0.1s;
-        }
-        .primary-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px var(--black); }
+        .login-input:focus { border-color: var(--black); background: #FFFDF0; }
 
         /* --- 2. Dashboard --- */
         #dashboardSection { display: none; max-width: 1000px; width: 100%; }
         
         .dash-header {
             display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid var(--black);
+            margin-bottom: 40px; padding-bottom: 20px; border-bottom: 4px solid var(--black);
         }
-        .dash-title { font-size: 2.2rem; font-weight: 900; color: var(--black); letter-spacing: -1px; }
-        .user-info { color: var(--text-dim); font-size: 0.9rem; font-family: monospace; font-weight: bold; }
-        .user-highlight { background: var(--black); color: #fff; padding: 2px 6px; margin-right: 5px; }
-        .admin-badge { background: var(--red); color: #fff; padding: 2px 6px; font-size: 0.7rem; margin-right: 5px; display: none;}
-        
-        /* Priority Groups */
-        .priority-section { margin-bottom: 30px; }
-        .priority-label { 
-            font-size: 1.2rem; font-weight: 900; margin-bottom: 15px; 
-            display: inline-block; background: var(--black); color: #fff; padding: 5px 15px;
+        .dash-title { 
+            font-size: 2.5rem; font-weight: 900; color: var(--black); letter-spacing: -1px; 
+            text-shadow: 3px 3px 0px var(--yellow); line-height: 1;
         }
-        .project-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
-        }
+        .user-info { font-family: monospace; font-weight: bold; font-size: 0.9rem; }
+        .user-highlight { background: var(--black); color: #fff; padding: 2px 8px; margin-right: 5px;}
+        .admin-tag { background: var(--red); color: #fff; padding: 2px 8px; font-size: 0.8rem; margin-right: 5px; display: none; }
 
-        /* Card */
+        .priority-section { margin-bottom: 40px; }
+        .priority-label {
+            font-size: 1.2rem; font-weight: 900; margin-bottom: 15px; display: inline-block;
+            background: var(--black); color: #fff; padding: 5px 15px; transform: skewX(-10deg);
+        }
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+
+        /* Project Card */
         .p-card {
-            background: #fff; border: var(--border); padding: 20px; cursor: pointer; 
-            transition: all 0.2s ease; min-height: 160px; position: relative;
-            display: flex; flex-direction: column; justify-content: space-between;
+            background: #fff; border: 2px solid var(--black); padding: 20px; cursor: pointer;
+            transition: all 0.2s; min-height: 160px; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative;
         }
-        .p-card:hover { transform: translateY(-5px); box-shadow: 8px 8px 0px var(--yellow); border-color: var(--black); }
+        .p-card:hover { transform: translateY(-5px); box-shadow: 8px 8px 0px var(--yellow); }
         
-        .p-priority-tag {
-            position: absolute; top: 0; right: 0; padding: 4px 10px; font-size: 0.7rem; font-weight: 900;
-            border-left: 1px solid #000; border-bottom: 1px solid #000;
-        }
-        .p-tag-0 { background: var(--yellow); color: #000; }
-        .p-tag-1 { background: #ddd; color: #000; }
-        .p-tag-2 { background: #fff; color: #999; }
-
-        .p-card-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; color: var(--black); line-height: 1.2; margin-top: 15px;}
+        .p-card-title { font-size: 1.4rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
         .p-card-score { font-size: 2.5rem; font-weight: 900; color: var(--black); }
-        .p-card-meta { font-size: 0.75rem; color: #888; font-family: monospace; margin-top: 10px; font-weight: bold;}
+        .p-card-meta { font-size: 0.75rem; color: #666; font-family: monospace; font-weight: bold; margin-top: 10px; display: flex; justify-content: space-between;}
 
-        /* Admin Controls in Card */
-        .card-admin-controls {
-            display: none; /* Hidden for normal users */
-            margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;
-            font-size: 0.7rem; justify-content: space-between;
+        /* Admin Controls on Card */
+        .card-admin {
+            display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;
+            justify-content: space-between;
         }
-        .p-btn { background: #eee; border: 1px solid #ccc; padding: 2px 6px; cursor: pointer; }
-        .p-btn.active { background: var(--black); color: #fff; }
+        .p-btn { 
+            font-size: 0.7rem; padding: 2px 8px; border: 1px solid #ccc; cursor: pointer; font-weight: bold;
+        }
+        .p-btn.active { background: var(--black); color: #fff; border-color: var(--black); }
 
-        .p-card.new { border: 2px dashed #ccc; align-items: center; justify-content: center; color: #aaa; }
-        .p-card.new:hover { border-color: var(--yellow); color: var(--black); background: rgba(255, 215, 0, 0.1); box-shadow: none; }
+        .p-card.new { border: 2px dashed #999; background: transparent; align-items: center; justify-content: center; color: #999; }
+        .p-card.new:hover { border-color: var(--yellow); color: var(--black); background: rgba(255,215,0,0.1); box-shadow: none;}
 
         /* --- 3. Main App --- */
-        #appSection { display: none; width: 100%; max-width: 700px; margin: 0 auto; }
-        .container { background: #fff; width: 100%; padding: 50px; box-sizing: border-box; border: var(--border); box-shadow: 15px 15px 0px rgba(0,0,0,0.05); }
+        #appSection { display: none; width: 100%; max-width: 750px; margin: 0 auto; }
+        .container { padding: 50px; box-sizing: border-box; background: #fff; border: 2px solid #000; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); position: relative; }
+
+        .back-link {
+            display: inline-block; margin-bottom: 20px; cursor: pointer; font-weight: bold; font-family: monospace;
+            background: #eee; padding: 5px 10px; border: 1px solid #000; transition: all 0.2s;
+        }
+        .back-link:hover { background: var(--black); color: var(--yellow); }
 
         .header {
             display: flex; justify-content: space-between; align-items: flex-start;
             margin-bottom: 40px; border-bottom: 4px solid var(--black); padding-bottom: 20px;
         }
-        .project-title-display { font-size: 2.2rem; font-weight: 900; color: var(--black); width: 60%; line-height: 1.1; text-transform: uppercase; }
+        .project-title-display { font-size: 2.2rem; font-weight: 900; width: 60%; line-height: 1.1; text-transform: uppercase; }
         .text-display-placeholder { display: none; font-size: inherit; font-weight: inherit; color: inherit; }
 
-        /* Mode Switch Fixed */
+        /* Toggle Switch - Fixed Layout */
         .mode-container { width: 40%; display: flex; flex-direction: column; align-items: flex-end; }
         .mode-switch {
-            display: flex; background: #eee; border: 1px solid var(--black);
-            padding: 0; height: 36px; width: 200px; position: relative;
+            display: flex; background: #fff; border: 2px solid var(--black);
+            height: 36px; width: 220px; position: relative;
         }
         .slider-bg {
-            position: absolute; top: 0; left: 0; height: 36px; width: 50%;
-            background: var(--yellow); border-right: 1px solid var(--black); z-index: 1;
-            transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            position: absolute; top: 0; left: 0; height: 100%; width: 50%;
+            background: var(--yellow); border-right: 2px solid var(--black); z-index: 1;
+            transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95); box-sizing: border-box;
         }
+        /* Fix button alignment */
         .mode-btn {
             flex: 1; background: transparent; border: none; color: #999;
-            cursor: pointer; font-size: 0.85rem; z-index: 2; font-weight: 800;
-            transition: color 0.3s; text-align: center; padding: 0;
+            cursor: pointer; font-size: 0.85rem; z-index: 2; font-weight: 800; 
+            transition: color 0.3s; padding: 0; display: flex; align-items: center; justify-content: center;
         }
         .mode-btn.active { color: #000; }
-        .mode-text-display { display: none; font-size: 1rem; font-weight: 900; color: var(--black); background: var(--yellow); padding: 5px 10px; border: 2px solid var(--black); }
+        .mode-text-display { display: none; font-weight: 900; background: var(--yellow); border: 2px solid #000; padding: 5px; }
 
         /* Tabs */
-        .view-tabs { display: flex; gap: 15px; margin-bottom: 40px; }
+        .view-tabs { display: flex; gap: 10px; margin-bottom: 40px; }
         .tab-btn {
-            flex: 1; padding: 12px; color: #999; cursor: pointer; background: #fff;
-            font-weight: 800; font-size: 0.9rem; border: 2px solid #eee; text-align: center; text-transform: uppercase;
+            flex: 1; padding: 12px; background: #fff; border: 2px solid #eee; color: #999;
+            font-weight: 800; cursor: pointer; text-align: center; transition: all 0.2s;
         }
-        .tab-btn.active { background: var(--yellow); color: var(--black); border-color: var(--black); box-shadow: 3px 3px 0px var(--black); }
-        .tab-btn.active-team { background: var(--black); color: #fff; border-color: var(--black); box-shadow: 3px 3px 0px var(--red); }
-        .tab-btn.active-admin { background: var(--red); color: #fff; border-color: var(--red); }
+        .tab-btn.active { background: var(--yellow); color: #000; border-color: #000; box-shadow: 4px 4px 0px #000; transform: translateY(-2px); }
+        .tab-btn.active-team { background: #000; color: #fff; border-color: #000; box-shadow: 4px 4px 0px var(--red); transform: translateY(-2px); }
+        .tab-btn.active-admin { background: var(--red); color: #fff; border-color: #000; }
 
-        /* Inputs */
+        /* Dimensions */
+        .dim-header { 
+            margin-bottom: 10px; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--yellow); padding-left: 10px;
+        }
+        .team-avg-display { font-size: 0.8rem; color: var(--red); background: #eee; padding: 2px 5px; font-family: monospace; }
+        .dim-desc { font-size: 0.8rem; color: #666; margin-bottom: 10px; line-height: 1.4; padding-left: 15px;}
         .dim-note-input {
             width: 100%; background: #FAFAFA; border: none; border-bottom: 2px solid #ddd;
-            color: var(--black); font-size: 0.95rem; padding: 10px; margin-top: 5px; outline: none; font-weight: 500;
+            padding: 8px; font-size: 0.9rem; outline: none; margin-top: 5px; transition: all 0.3s;
         }
-        .dim-note-input:focus { border-bottom-color: var(--black); background: #FFF; border-left: 3px solid var(--yellow); }
+        .dim-note-input:focus { background: #fff; border-bottom-color: #000; border-left: 4px solid var(--yellow); }
 
         /* Score Grid */
-        .score-selector { display: flex; gap: 5px; height: 36px; margin-bottom: 5px;}
+        .score-selector { display: flex; gap: 4px; margin-bottom: 8px; height: 34px; }
         .score-btn {
-            flex: 1; background: #fff; border: 1px solid #ccc; color: #aaa; font-size: 0.9rem; font-weight: 800;
+            flex: 1; background: #fff; border: 1px solid #ccc; color: #aaa; font-weight: bold; font-size: 0.9rem;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-        .score-btn.selected { background: var(--yellow); color: #000; border: 1px solid var(--black); box-shadow: 3px 3px 0px rgba(0,0,0,0.1); transform: translateY(-3px); }
-        .score-btn.selected-low { background: var(--red); color: #fff; border-color: var(--black); }
-        .score-btn.team-avg-highlight { border: 2px solid var(--black); position: relative; }
+        .score-btn.selected { background: var(--yellow); color: #000; border: 2px solid #000; transform: translateY(-3px); box-shadow: 3px 3px 0px rgba(0,0,0,0.1); }
+        .score-btn.selected-low { background: var(--red); color: #fff; border-color: #000; }
+        .score-btn.team-avg-highlight { border: 3px solid #000; position: relative; z-index: 2; }
 
-        /* Extra & Result */
-        #extraSection { display: none; margin-top: 50px; padding-top: 30px; border-top: 2px dashed #ddd; }
-        .extra-input { width: 100%; background: #fff; border: 2px solid #eee; padding: 15px; box-sizing: border-box; outline: none; }
-        .result-section { display: none; margin-top: 60px; padding-top: 40px; border-top: 4px solid var(--black); text-align: center; background-image: repeating-linear-gradient(45deg, #f9f9f9 0, #f9f9f9 10px, #fff 10px, #fff 20px); }
-        .total-score { font-size: 7rem; font-weight: 900; color: var(--black); line-height: 0.9; margin: 20px 0 10px 0; letter-spacing: -4px; text-shadow: 4px 4px 0px var(--yellow); }
-        .grade-badge { display: inline-block; padding: 8px 25px; background: var(--black); color: #fff; font-weight: 900; font-size: 1.8rem; margin-bottom: 25px; text-transform: uppercase; }
-        .comment { font-size: 1.1rem; color: #333; border: 2px solid #eee; background: #fff; padding: 25px; display: inline-block; max-width: 80%; line-height: 1.6; box-shadow: 10px 10px 0px #eee; }
+        /* Admin Panel */
+        #adminPanel { display: none; background: #FFF5F5; border: 2px solid var(--red); padding: 20px; margin-top: 20px; }
+        .review-row { border-bottom: 1px solid #ecc; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .btn-del { background: var(--red); color: #fff; border: 1px solid #000; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
 
-        /* Admin Panel in Project */
-        #adminPanel { display: none; margin-top: 20px; padding: 20px; border: 2px solid var(--red); background: #fff5f5; }
-        .admin-review-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eeb; padding: 10px 0; font-size: 0.9rem; }
-        .btn-del { color: #fff; background: var(--red); padding: 2px 8px; font-size: 0.7rem; cursor: pointer; border:none; font-weight:bold;}
-        
-        .btn { padding: 14px 30px; font-weight: 900; cursor: pointer; font-size: 0.95rem; border: 1px solid var(--black); text-transform: uppercase; transition: transform 0.1s; box-shadow: 4px 4px 0px var(--black); }
-        .btn-main { background: var(--yellow); color: var(--black); }
-        .btn-copy { background: #fff; color: var(--black); width:100%; margin-top:10px; border-color: var(--black);}
+        /* Extra Section */
+        #extraSection { display: none; margin-top: 40px; border-top: 2px dashed #000; padding-top: 30px; }
+        .extra-label { display: inline-block; background: var(--black); color: #fff; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; }
+        .extra-input { width: 100%; border: 2px solid #eee; padding: 12px; font-size: 0.95rem; outline: none; box-sizing: border-box; }
+        .extra-input:focus { border-color: #000; }
 
-        .footer { margin-top: 60px; text-align: center; font-size: 0.75rem; color: #999; font-family: monospace; text-transform: uppercase; font-weight: bold; }
+        /* Action Area */
+        .action-area { margin-top: 40px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+
+        /* Result */
+        .result-section { display: none; margin-top: 50px; border-top: 4px solid #000; padding-top: 30px; text-align: center; }
+        .total-score { font-size: 6rem; font-weight: 900; line-height: 1; margin: 10px 0; text-shadow: 4px 4px 0px var(--yellow); }
+        .grade-badge { display: inline-block; background: #000; color: #fff; padding: 5px 20px; font-size: 1.5rem; font-weight: 900; margin-bottom: 20px; }
+        .comment { background: #f9f9f9; border: 2px solid #000; padding: 20px; display: inline-block; max-width: 80%; }
+
+        .footer { margin-top: 60px; text-align: center; font-size: 0.7rem; color: #999; font-weight: bold; font-family: monospace; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<!-- 1. Login -->
+<!-- 1. Login Overlay -->
 <div id="loginOverlay">
-    <div class="login-box tech-box">
-        <div style="font-size:2.5rem; font-weight:900; color:var(--black); margin-bottom:5px; letter-spacing:-2px; line-height:1;">BOOOM</div>
-        <div style="margin-bottom:30px; color:#666; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">游戏发行孵化评估中心 v3.0</div>
-        <input type="text" id="loginName" class="login-input" placeholder="输入名字 / 暗号" maxlength="20">
-        <button class="primary-btn" onclick="handleLogin()">进入系统</button>
+    <div class="login-box">
+        <div style="font-size:3rem; font-weight:900; line-height:1; letter-spacing:-2px;">BOOOM</div>
+        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v3.2</div>
+        <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME / CODE" maxlength="20">
+        <button class="btn btn-primary" style="width:100%;" onclick="handleLogin()">ENTER SYSTEM</button>
     </div>
 </div>
 
@@ -225,30 +241,29 @@
             <div class="dash-title">BOOOM EVALUATION SYSTEM</div>
             <div class="user-info">
                 OPERATOR: <span id="dashUser" class="user-highlight"></span>
-                <span id="adminBadge" class="admin-badge">ADMIN</span>
-                <span style="cursor: pointer; text-decoration: underline; margin-left: 10px; color: var(--red);" onclick="handleLogout()">[退出]</span>
+                <span id="adminBadge" class="admin-tag">ADMIN</span>
+                <span style="cursor:pointer; text-decoration:underline; margin-left:10px; color:var(--red);" onclick="handleLogout()">[EXIT]</span>
             </div>
         </div>
     </div>
-    <!-- Container for Dynamic Priority Lists -->
     <div id="lobbyContainer"></div>
     
-    <div style="margin-top: 40px; text-align: center;">
-        <div class="p-card new" style="max-width: 300px; margin: 0 auto;" onclick="createNewProject()">
-            <div class="plus-icon">+</div>
-            <div>NEW PROJECT</div>
+    <div style="margin-top:40px; text-align:center;">
+        <div class="p-card new" style="max-width:300px; margin:0 auto;" onclick="createNewProject()">
+            <div style="font-size:3rem; color:#ccc;">+</div>
+            <div style="font-weight:bold; color:#999;">NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v3.0</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v3.2</div>
 </div>
 
-<!-- 3. App -->
+<!-- 3. Main App -->
 <div id="appSection">
     <div class="container tech-box" id="captureTarget">
         <div class="back-link" onclick="goBackToDash()">&lt; DASHBOARD</div>
 
         <div class="header">
-            <input type="text" class="project-title-display" id="displayProjectNameInput" style="background:transparent; border:none; outline:none; width:60%;" readonly>
+            <input type="text" class="project-title-display" id="displayProjectNameInput" style="background:transparent; border:none; outline:none;" readonly>
             <div class="project-title-display text-display-placeholder" id="displayProjectNameStatic"></div>
 
             <div class="mode-container">
@@ -269,8 +284,8 @@
 
         <!-- Admin Panel -->
         <div id="adminPanel">
-            <div style="font-weight:bold; margin-bottom:10px;">📋 数据导出 & 评论管理</div>
-            <button class="btn btn-copy" onclick="copyAllFeedback()">📑 复制本项目所有文字反馈</button>
+            <div style="font-weight:bold; margin-bottom:15px;">📋 ADMIN DASHBOARD</div>
+            <button class="btn" style="width:100%; background:#fff;" onclick="copyAllFeedback()">📑 复制所有反馈文本</button>
             <div id="adminReviewList" style="margin-top:20px;"></div>
         </div>
 
@@ -278,27 +293,28 @@
 
         <div id="extraSection">
             <div class="extra-group">
-                <label style="display: inline-block; color: var(--black); background: var(--yellow); font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid var(--black);">优点</label>
+                <label class="extra-label">优点</label>
                 <input type="text" class="extra-input" id="extra-pros" placeholder="该项目的亮点如何...">
             </div>
             <div class="extra-group">
-                <label style="display: inline-block; color: var(--black); background: var(--yellow); font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid var(--black);">缺点</label>
+                <label class="extra-label">缺点</label>
                 <input type="text" class="extra-input" id="extra-cons" placeholder="该项目存在的风险...">
             </div>
             <div class="extra-group">
-                <label style="display: inline-block; color: var(--black); background: var(--yellow); font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid var(--black);">结论</label>
+                <label class="extra-label">结论</label>
                 <input type="text" class="extra-input" id="extra-conclusion" placeholder="是否投入精力...">
             </div>
             <div class="extra-group">
-                <label style="display: inline-block; color: var(--black); background: var(--yellow); font-size: 0.8rem; padding: 4px 10px; margin-bottom: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid var(--black);">提问</label>
+                <label class="extra-label">提问</label>
                 <textarea class="extra-input" id="extra-questions" placeholder="希望向团队提的问题..."></textarea>
             </div>
         </div>
 
         <div class="action-area" data-html2canvas-ignore="true">
-            <button class="btn" style="background:transparent; border:1px dashed #000; color:#666; box-shadow:none;" id="btnAddComment" onclick="toggleExtraSection()">+ 评价与提问</button>
-            <button class="btn btn-main" id="btnCalculate" onclick="calculateLocalResult()">完成评分</button>
-            <button class="btn" style="background:#000; color:#fff; display:none;" id="btnUpload" onclick="uploadToCloud()">☁️ 提交同步</button>
+            <button class="btn toggle-btn" style="border-style:dashed; color:#666; box-shadow:none;" id="btnAddComment" onclick="toggleExtraSection()">+ 评价与提问</button>
+            <button class="btn btn-primary" id="btnCalculate" onclick="calculateLocalResult()">完成评分</button>
+            
+            <button class="btn btn-dark" style="display:none;" id="btnUpload" onclick="uploadToCloud()">☁️ 提交同步</button>
             <button class="btn" style="background:#fff; color:#666; display:none; border-color:#ccc; box-shadow:none;" id="btnSaveImg" onclick="saveImage()">保存图片</button>
         </div>
 
@@ -309,7 +325,7 @@
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v3.0</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v3.2</div>
     </div>
 </div>
 
@@ -331,15 +347,14 @@
 
     // --- Global State ---
     let currentUser = "";
-    let adminLevel = 0; // 0:User, 1:Admin, 2:SuperAdmin
+    let adminLevel = 0; 
     let currentProject = "";
     let currentTab = "my";
     let teamData = null; 
 
-    // --- Login Logic with Secrets ---
+    // --- Login ---
     const savedName = localStorage.getItem('booom_user');
     const savedLevel = localStorage.getItem('booom_level');
-    
     if(savedName) {
         currentUser = savedName;
         adminLevel = parseInt(savedLevel || "0");
@@ -349,16 +364,11 @@
 
     window.handleLogin = () => {
         let input = document.getElementById('loginName').value.trim();
-        if(!input) return alert("输入名字");
+        if(!input) return alert("请输入名字");
         
-        // Secret Code Logic
-        if(input === "admin") {
-            currentUser = "管理员"; adminLevel = 1;
-        } else if (input === "admin#NJBK") {
-            currentUser = "SuperAdmin"; adminLevel = 2;
-        } else {
-            currentUser = input; adminLevel = 0;
-        }
+        if(input === "admin") { currentUser = "管理员"; adminLevel = 1; }
+        else if (input === "admin#NJBK") { currentUser = "SuperAdmin"; adminLevel = 2; }
+        else { currentUser = input; adminLevel = 0; }
 
         localStorage.setItem('booom_user', currentUser);
         localStorage.setItem('booom_level', adminLevel);
@@ -367,56 +377,57 @@
     };
 
     window.handleLogout = () => {
-        if(confirm("退出登录？")) {
+        if(confirm("确定退出吗？")) {
             localStorage.clear();
             location.reload();
         }
     };
 
-    // --- Dashboard & Priority ---
+    // --- Dashboard ---
     function initDashboard() {
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('dashUser').innerText = currentUser;
         if(adminLevel > 0) {
-            const badge = document.getElementById('adminBadge');
-            badge.style.display = 'inline-block';
-            badge.innerText = adminLevel === 2 ? "SUPER ADMIN" : "ADMIN";
+            const b = document.getElementById('adminBadge');
+            b.style.display = 'inline-block';
+            b.innerText = adminLevel===2 ? "SUPER ADMIN" : "ADMIN";
         }
 
-        const q = query(collection(db, "projects"), orderBy("lastUpdate", "desc"));
+        // FIX: Remove orderBy if old data missing field
+        const q = query(collection(db, "projects"));
+        
         onSnapshot(q, (snapshot) => {
             const container = document.getElementById('lobbyContainer');
             container.innerHTML = '';
+            let p0=[], p1=[], p2=[];
             
-            // Group projects by priority
-            let p0 = [], p1 = [], p2 = [];
             snapshot.forEach(doc => {
-                const d = doc.data();
-                d.id = doc.id;
-                const p = d.priority !== undefined ? d.priority : 2; // Default P2
-                if(p===0) p0.push(d);
-                else if(p===1) p1.push(d);
-                else p2.push(d);
+                const d = doc.data(); d.id = doc.id;
+                // Client side sort
+                const p = d.priority !== undefined ? d.priority : 2;
+                if(p===0) p0.push(d); else if(p===1) p1.push(d); else p2.push(d);
             });
 
-            renderPriorityGroup(container, "P0 - 最高优先级", "var(--p0-bg)", p0);
-            renderPriorityGroup(container, "P1 - 重要项目", "var(--p1-bg)", p1);
-            renderPriorityGroup(container, "P2 - 储备项目", "var(--p2-bg)", p2);
+            // Sort by time desc locally
+            const timeSort = (a,b) => (b.lastUpdate?.seconds||0) - (a.lastUpdate?.seconds||0);
+            p0.sort(timeSort); p1.sort(timeSort); p2.sort(timeSort);
+
+            renderPriorityGroup(container, "P0 - 急！急！急！", "#FFD700", p0);
+            renderPriorityGroup(container, "P1 - 重点项目", "#E0E0E0", p1);
+            renderPriorityGroup(container, "P2 - 普通项目", "#FFF", p2);
         });
     }
 
     function renderPriorityGroup(container, title, color, projects) {
-        if(projects.length === 0 && title.includes("P0")) return; // Hide empty P0 optional
+        // Always render groups for structure, or hide empty? Let's show title if items exist
+        if(projects.length === 0 && !title.includes("P0")) return; 
         
         const section = document.createElement('div');
         section.className = 'priority-section';
-        
-        // Only show P0/P1 labels if there are items, or always show? Let's always show P0/P1
         const label = document.createElement('div');
         label.className = 'priority-label';
         label.innerText = title;
-        label.style.color = (color === 'var(--p0-bg)') ? '#000' : '#fff';
-        label.style.background = (color === 'var(--p0-bg)') ? 'var(--yellow)' : '#000';
+        if(title.includes("P0")) { label.style.background = "var(--yellow)"; label.style.color = "#000"; }
         section.appendChild(label);
 
         const grid = document.createElement('div');
@@ -429,17 +440,12 @@
         } else {
             projects.forEach(data => {
                 const card = document.createElement('div');
-                card.className = 'p-card';
-                
-                // Click to enter project
-                card.onclick = (e) => {
-                    if(!e.target.classList.contains('p-btn')) loadProject(data.id);
-                };
+                card.className = 'p-card tech-box';
+                card.onclick = (e) => { if(!e.target.classList.contains('p-btn')) loadProject(data.id); };
 
                 const score = data.totalAvg ? data.totalAvg.toFixed(1) : "N/A";
-                let scoreColor = '#999';
-                if(score >= 85) scoreColor = 'var(--yellow)';
-                else if(score >= 68) scoreColor = 'var(--red)';
+                let sc = '#999';
+                if(score >= 85) sc = 'var(--yellow)'; else if(score >= 68) sc = 'var(--red)';
                 
                 let timeStr = "-";
                 if(data.lastUpdate) {
@@ -449,21 +455,19 @@
 
                 let html = `
                     <div class="p-card-title">${data.name}</div>
-                    <div class="p-card-score" style="color:${scoreColor}">${score}</div>
+                    <div class="p-card-score" style="color:${sc}">${score}</div>
                     <div class="p-card-meta"><span>👤 ${data.reviewCount||0}</span> <span>${timeStr}</span></div>
                 `;
 
-                // Admin Priority Controls
                 if(adminLevel > 0) {
-                    const currentP = data.priority !== undefined ? data.priority : 2;
+                    const cp = data.priority !== undefined ? data.priority : 2;
                     html += `
-                    <div class="card-admin-controls" style="display:flex;">
-                        <span class="p-btn ${currentP===0?'active':''}" onclick="setPriority('${data.id}', 0)">P0</span>
-                        <span class="p-btn ${currentP===1?'active':''}" onclick="setPriority('${data.id}', 1)">P1</span>
-                        <span class="p-btn ${currentP===2?'active':''}" onclick="setPriority('${data.id}', 2)">P2</span>
+                    <div class="card-admin">
+                        <span class="p-btn ${cp===0?'active':''}" onclick="setPriority('${data.id}', 0)">P0</span>
+                        <span class="p-btn ${cp===1?'active':''}" onclick="setPriority('${data.id}', 1)">P1</span>
+                        <span class="p-btn ${cp===2?'active':''}" onclick="setPriority('${data.id}', 2)">P2</span>
                     </div>`;
                 }
-
                 card.innerHTML = html;
                 grid.appendChild(card);
             });
@@ -472,14 +476,13 @@
         container.appendChild(section);
     }
 
-    // Admin Function: Set Priority
     window.setPriority = async (pid, level) => {
         if(adminLevel === 0) return;
         await updateDoc(doc(db, "projects", pid), { priority: level });
     };
 
     window.createNewProject = () => {
-        const name = prompt("项目名称:");
+        const name = prompt("请输入新项目名称:");
         if(name && name.trim()) loadProject(name.trim());
     };
 
@@ -489,120 +492,106 @@
         document.getElementById('appSection').style.display = 'block';
         document.getElementById('displayProjectNameInput').value = currentProject;
         
-        // Admin Tab Visibility
         document.getElementById('tabAdmin').style.display = (adminLevel > 0) ? 'block' : 'none';
         
         renderInputs();
         loadMyReview();
         listenTeamData();
+        window.scrollTo(0,0);
     };
 
     window.goBackToDash = () => {
-        location.reload(); // Simple reset
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        currentTab = 'my'; teamData = null; myScores = [null, null, null, null, null, null, null];
+        resetToUncalculatedState();
+        document.getElementById('tabMy').click();
+        window.scrollTo(0,0);
     };
 
-    // --- Tab Switching (Includes Admin) ---
+    // --- Tab Logic ---
     window.switchTab = async (tab) => {
         currentTab = tab;
         ['my','team','admin'].forEach(t => {
             const el = document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`);
             if(el) el.className = 'tab-btn';
         });
-        
-        const targetBtn = document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
-        if(tab==='my') targetBtn.classList.add('active');
-        if(tab==='team') targetBtn.classList.add('active-team');
-        if(tab==='admin') targetBtn.classList.add('active-admin');
+        const target = document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+        if(tab==='my') target.classList.add('active');
+        if(tab==='team') target.classList.add('active-team');
+        if(tab==='admin') target.classList.add('active-admin');
 
         const inputs = document.querySelectorAll('input, textarea');
-        const mainActions = document.querySelectorAll('#action-area button');
-        
-        document.getElementById('dimensions-container').style.display = (tab==='admin') ? 'none' : 'block';
-        document.getElementById('extraSection').style.display = (tab==='admin') ? 'none' : 'none'; // Initially hidden
-        document.getElementById('adminPanel').style.display = (tab==='admin') ? 'block' : 'none';
-        
-        // Visibility Logic
-        const myCtrls = ['btnCalculate', 'btnAddComment', 'btnUpload', 'btnSaveImg'];
-        
+        const container = document.getElementById('dimensions-container');
+        const adminP = document.getElementById('adminPanel');
+        const extra = document.getElementById('extraSection');
+
+        container.style.display = (tab==='admin') ? 'none' : 'block';
+        extra.style.display = (tab==='admin') ? 'none' : (extraSectionVisible ? 'block' : 'none');
+        adminP.style.display = (tab==='admin') ? 'block' : 'none';
+
         if(tab === 'my') {
             inputs.forEach(el => el.disabled = false);
-            document.getElementById('dimensions-container').style.opacity = '1';
+            container.style.opacity = '1';
             document.getElementById('resultSection').style.display = 'none';
             document.getElementById('btnCalculate').style.display = 'block';
             document.getElementById('btnAddComment').style.display = 'inline-block';
             document.getElementById('btnUpload').style.display = 'none';
             document.getElementById('btnSaveImg').style.display = 'none';
-        } 
-        else if (tab === 'team') {
+        } else if (tab === 'team') {
             inputs.forEach(el => el.disabled = true);
-            document.getElementById('dimensions-container').style.opacity = '0.6';
+            container.style.opacity = '0.6';
             document.getElementById('btnCalculate').style.display = 'none';
             document.getElementById('btnAddComment').style.display = 'none';
             document.getElementById('btnUpload').style.display = 'none';
             document.getElementById('btnSaveImg').style.display = 'none';
-            
             if(teamData && teamData.averages) {
                 const res = calculateScoreInternal(teamData.averages);
                 showResult(res, true);
             }
-        }
-        else if (tab === 'admin') {
+        } else if (tab === 'admin') {
             loadAdminData();
         }
-        
         updateUIFromScores();
     };
 
-    // --- Admin Panel Logic ---
     async function loadAdminData() {
         const list = document.getElementById('adminReviewList');
         list.innerHTML = '加载中...';
-        
         let textData = `项目：${currentProject}\n----------------\n`;
-        
         const snap = await getDocs(collection(db, "projects", currentProject, "reviews"));
         list.innerHTML = '';
         
         snap.forEach(d => {
             const r = d.data();
-            // Build Copy Text
-            textData += `【用户: ${r.user}】\n`;
-            textData += `评分: ${r.scores.join(',')}\n`;
+            textData += `【用户: ${r.user}】评分:${r.scores.join(',')}\n`;
             r.comments.forEach((c,i) => { if(c) textData += `维度${i+1}: ${c}\n`; });
             if(r.extra.pros) textData += `优点: ${r.extra.pros}\n`;
             if(r.extra.cons) textData += `缺点: ${r.extra.cons}\n`;
-            if(r.extra.questions) textData += `提问: ${r.extra.questions}\n`;
+            if(r.extra.conclusion) textData += `结论: ${r.extra.conclusion}\n`;
             textData += `\n`;
 
-            // UI Row
             const row = document.createElement('div');
-            row.className = 'admin-review-row';
+            row.className = 'review-row';
             let html = `<span>👤 ${r.user}</span>`;
-            
-            // Super Admin Delete Button
-            if(adminLevel === 2) {
-                html += `<button class="btn-del" onclick="deleteReview('${d.id}')">删除此条</button>`;
-            }
+            if(adminLevel === 2) html += `<button class="btn-del" onclick="deleteReview('${d.id}')">删除</button>`;
             row.innerHTML = html;
             list.appendChild(row);
         });
-        
-        // Bind Copy Button
         window.copyAllFeedback = () => {
-            navigator.clipboard.writeText(textData).then(()=>alert("已复制所有文本信息"));
+            navigator.clipboard.writeText(textData).then(()=>alert("已复制"));
         };
     }
 
-    window.deleteReview = async (userId) => {
-        if(confirm(`确认删除用户 ${userId} 的数据吗？此操作不可逆。`)) {
-            await deleteDoc(doc(db, "projects", currentProject, "reviews", userId));
-            await aggregateProjectData(); // Recalc average
-            loadAdminData(); // Refresh UI
-            alert("已删除");
+    window.deleteReview = async (uid) => {
+        if(confirm("删除数据？")) {
+            await deleteDoc(doc(db, "projects", currentProject, "reviews", uid));
+            await aggregateProjectData();
+            loadAdminData();
         }
     };
 
-    // --- Standard Calculation Logic ---
+    // --- Core Logic ---
     let config = {
         coeffs: { 10: 1.00, 9: 0.97, 8: 0.80, 7: 0.65, 6: 0.52, 5: 0.35, 4: 0.20, 3: 0.07, 2: 0.02, 1: 0.00 },
         dims: [
@@ -618,48 +607,60 @@
         weightsB: [10, 28, 12, 11, 17, 15, 7]
     };
 
-    function calculateScoreInternal(scoreArray) {
-        let total = 0;
-        const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
-        scoreArray.forEach((score, i) => { 
-            const intScore = Math.round(score); 
-            const safeScore = Math.max(1, Math.min(10, intScore));
-            total += weights[i] * config.coeffs[safeScore]; 
+    function renderInputs() {
+        const container = document.getElementById('dimensions-container');
+        container.innerHTML = '';
+        config.dims.forEach((dim, index) => {
+            const div = document.createElement('div');
+            div.className = 'dimension-row';
+            const descHtml = dim.desc.map(d => `<li>${d}</li>`).join('');
+            
+            let buttonsHtml = '';
+            for(let i=1; i<=10; i++) {
+                buttonsHtml += `<div class="score-btn" id="btn-${index}-${i}" onclick="selectScore(${index}, ${i})">${i}</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="dim-header">
+                    <span>${dim.name}</span>
+                    <span class="team-avg-display" id="team-avg-${index}"></span>
+                </div>
+                <ul class="dim-desc">${descHtml}</ul>
+                <div class="score-selector">${buttonsHtml}</div>
+                <input type="text" class="dim-note-input" id="dim-input-${index}" placeholder="// 简评..." maxlength="40">
+                <div class="text-display-placeholder" id="dim-disp-${index}" style="margin-top:8px; color:var(--black); font-weight:bold; padding-left:10px; border-left:3px solid var(--yellow);"></div>
+            `;
+            container.appendChild(div);
         });
-        let grade, color, comment;
-        if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
-        else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
-        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
-        else { grade = 'FAIL'; color = '#999'; comment = '核心竞争力不足或致命短板过多。'; }
-        return { total, grade, color, comment };
+        updateUIFromScores();
     }
 
-    function showResult(res, isTeam) {
-        document.getElementById('finalScore').innerText = res.total.toFixed(2);
-        const badge = document.getElementById('gradeBadge');
-        badge.innerText = isTeam ? `团队评级: ${res.grade}` : res.grade;
-        badge.style.background = res.color;
-        badge.style.color = (res.grade === 'S' || res.grade === 'A') ? '#000' : '#fff';
-        document.getElementById('commentText').innerText = res.comment;
-        document.getElementById('commentText').style.borderColor = res.color; 
-        document.getElementById('resultSection').style.display = 'block';
+    window.selectScore = (dimIndex, scoreVal) => {
+        if(currentTab === 'team') return;
+        myScores[dimIndex] = scoreVal;
+        updateUIFromScores();
+        resetToUncalculatedState();
+    };
+
+    function updateUIFromScores() {
+        document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected', 'selected-low', 'team-avg-highlight'));
+        if(currentTab === 'my') {
+            myScores.forEach((s, idx) => {
+                if(s !== null) {
+                    const btn = document.getElementById(`btn-${idx}-${s}`);
+                    if(btn) { btn.classList.add('selected'); if(s<=5) btn.classList.add('selected-low'); }
+                }
+            });
+        } else if (currentTab === 'team' && teamData && teamData.averages) {
+            teamData.averages.forEach((avg, idx) => {
+                const rounded = Math.round(avg);
+                if(rounded >= 1 && rounded <= 10) {
+                    const btn = document.getElementById(`btn-${idx}-${rounded}`);
+                    if(btn) btn.classList.add('team-avg-highlight');
+                }
+            });
+        }
     }
-
-    // --- Common Helpers ---
-    window.calculateLocalResult = () => {
-        if(myScores.includes(null)) { alert("请先完成所有打分"); return; }
-        const res = calculateScoreInternal(myScores);
-        showResult(res, false);
-        document.getElementById('btnCalculate').style.display = 'none';
-        document.getElementById('btnAddComment').style.display = 'inline-block';
-        document.getElementById('btnUpload').style.display = 'inline-block';
-        document.getElementById('btnSaveImg').style.display = 'inline-block';
-    };
-
-    window.toggleExtraSection = () => {
-        extraSectionVisible = !extraSectionVisible;
-        document.getElementById('extraSection').style.display = extraSectionVisible ? 'block' : 'none';
-    };
 
     window.toggleMode = () => {
         if(currentTab === 'team') return;
@@ -672,15 +673,63 @@
             switchBg.style.transform = 'translateX(100%)';
             document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.add('active');
         }
-        // Reset
+        resetToUncalculatedState();
+    };
+
+    window.calculateLocalResult = () => {
+        if(myScores.includes(null)) { alert("请先完成所有维度打分"); return; }
+        const res = calculateScoreInternal(myScores);
+        showResult(res, false);
+        document.getElementById('btnCalculate').style.display = 'none';
+        document.getElementById('btnAddComment').style.display = 'inline-block';
+        document.getElementById('btnUpload').style.display = 'inline-block';
+        document.getElementById('btnSaveImg').style.display = 'inline-block';
+    };
+
+    function calculateScoreInternal(scoreArray) {
+        let total = 0;
+        const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
+        scoreArray.forEach((score, i) => { 
+            const intScore = Math.round(score); 
+            const safeScore = Math.max(1, Math.min(10, intScore));
+            total += weights[i] * config.coeffs[safeScore]; 
+        });
+        let grade, color, comment;
+        if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
+        else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
+        else if (total >= 52) { grade = 'B'; color = 'var(--grade-b)'; comment = '观察区。平庸或风险较大，需谨慎评估投入产出比。'; }
+        else { grade = 'FAIL'; color = 'var(--grade-f)'; comment = '核心竞争力不足或致命短板过多。'; }
+        return { total, grade, color, comment };
+    }
+
+    function showResult(res, isTeam) {
+        document.getElementById('finalScore').innerText = res.total.toFixed(2);
+        const badge = document.getElementById('gradeBadge');
+        badge.innerText = isTeam ? `团队综合: ${res.grade}` : res.grade;
+        badge.style.background = res.color;
+        badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
+        document.getElementById('commentText').innerText = res.comment;
+        document.getElementById('commentText').style.borderColor = res.color; 
+        document.getElementById('resultSection').style.display = 'block';
+    }
+
+    function resetToUncalculatedState() {
+        if(currentTab === 'team') return;
         document.getElementById('resultSection').style.display = 'none';
         document.getElementById('btnCalculate').style.display = 'block';
         document.getElementById('btnAddComment').style.display = 'none';
         document.getElementById('btnUpload').style.display = 'none';
         document.getElementById('btnSaveImg').style.display = 'none';
+        document.getElementById('extraSection').style.display = 'none';
+        extraSectionVisible = false;
+    }
+
+    window.toggleExtraSection = () => {
+        extraSectionVisible = !extraSectionVisible;
+        document.getElementById('extraSection').style.display = extraSectionVisible ? 'block' : 'none';
     };
 
-    // --- Firebase Saving & Loading ---
+    // Firebase Funcs
     async function loadMyReview() {
         try {
             const docRef = doc(db, "projects", currentProject, "reviews", currentUser);
@@ -694,17 +743,19 @@
                 document.getElementById('extra-cons').value = data.extra.cons || "";
                 document.getElementById('extra-conclusion').value = data.extra.conclusion || "";
                 document.getElementById('extra-questions').value = data.extra.questions || "";
-                // UI Mode Sync
+                
                 if(currentMode === 'A') {
                     document.getElementById('switchBg').style.transform = 'translateX(0)';
-                    document.getElementById('btnA').classList.add('active'); document.getElementById('btnB').classList.remove('active');
+                    document.getElementById('btnA').classList.add('active');
+                    document.getElementById('btnB').classList.remove('active');
                 } else {
                     document.getElementById('switchBg').style.transform = 'translateX(100%)';
-                    document.getElementById('btnA').classList.remove('active'); document.getElementById('btnB').classList.add('active');
+                    document.getElementById('btnA').classList.remove('active');
+                    document.getElementById('btnB').classList.add('active');
                 }
                 updateUIFromScores();
             }
-        } catch(e) {}
+        } catch(e) { }
     }
 
     window.uploadToCloud = async () => {
@@ -724,9 +775,9 @@
                 comments: dimComments, extra: extraData, updatedAt: serverTimestamp()
             });
             await aggregateProjectData();
-            btn.innerText = "已同步";
+            btn.innerText = "SAVED";
             setTimeout(() => { btn.innerText = "☁️ 提交同步"; btn.disabled = false; }, 2000);
-        } catch (e) { console.error(e); alert("Failed"); btn.disabled = false; }
+        } catch (e) { console.error(e); alert("Error"); btn.innerText = "RETRY"; btn.disabled = false; }
     };
 
     async function aggregateProjectData() {
@@ -759,8 +810,6 @@
 
     window.saveImage = () => {
         const target = document.getElementById('captureTarget');
-        
-        // Hide extra section if visible, but capture inputs as text
         const extraSec = document.getElementById('extraSection');
         const wasExtraVisible = (extraSec.style.display === 'block');
         extraSec.style.display = 'none';

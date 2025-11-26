@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v3.3</title>
+    <title>BOOOM 游戏发行孵化评估系统 v1.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -228,7 +228,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <div style="font-size:3rem; font-weight:900; line-height:1; letter-spacing:-2px;">BOOOM</div>
-        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v3.3</div>
+        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v1.3</div>
         <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME / CODE" maxlength="20">
         <button class="btn btn-primary" style="width:100%;" onclick="handleLogin()">ENTER SYSTEM</button>
     </div>
@@ -254,7 +254,7 @@
             <div style="font-weight:bold; color:#999;">NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v3.3</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v1.3</div>
 </div>
 
 <!-- 3. Main App -->
@@ -278,7 +278,7 @@
 
         <div class="view-tabs">
             <div class="tab-btn active" id="tabMy" onclick="switchTab('my')">我的评分</div>
-            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合</div>
+            <div class="tab-btn" id="tabTeam" onclick="switchTab('team')">团队综合分</div>
             <div class="tab-btn" id="tabAdmin" onclick="switchTab('admin')" style="display:none;">管理后台</div>
         </div>
 
@@ -325,7 +325,7 @@
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v3.3</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v1.3</div>
     </div>
 </div>
 
@@ -503,7 +503,7 @@
                 const disp = document.getElementById(`dim-disp-${idx}`);
                 inp.style.display = 'block'; disp.style.display = 'none';
             });
-            const a = document.createElement('a'); a.download = `${currentProject}_EVAL.png`; a.href = c.toDataURL(); a.click();
+            const a = document.createElement('a'); a.download = `${currentProject}_评估报告.png`; a.href = c.toDataURL(); a.click();
         });
     };
 
@@ -595,9 +595,9 @@
             const sorter = (a,b) => (b.lastUpdate?.seconds||0) - (a.lastUpdate?.seconds||0);
             p0.sort(sorter); p1.sort(sorter); p2.sort(sorter);
 
-            renderPriorityGroup(container, "P0 - 最高优先级", "#FFD700", p0);
-            renderPriorityGroup(container, "P1 - 重点项目", "#E0E0E0", p1);
-            renderPriorityGroup(container, "P2 - 储备项目", "#FFF", p2);
+            renderPriorityGroup(container, "P0 - 急!急!急!", "#FFD700", p0);
+            renderPriorityGroup(container, "P1 - 一般急", "#E0E0E0", p1);
+            renderPriorityGroup(container, "P2 - 不太急", "#FFF", p2);
         });
     }
 
@@ -734,7 +734,7 @@
     function showResult(res, isTeam) {
         document.getElementById('finalScore').innerText = res.total.toFixed(2);
         const badge = document.getElementById('gradeBadge');
-        badge.innerText = isTeam ? `团队综合: ${res.grade}` : res.grade;
+        badge.innerText = isTeam ? `综合分: ${res.grade}` : res.grade;
         badge.style.background = res.color;
         badge.style.color = (res.grade === 'S') ? '#000' : '#fff';
         document.getElementById('commentText').innerText = res.comment;

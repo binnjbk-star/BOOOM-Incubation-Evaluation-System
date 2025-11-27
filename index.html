@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOOM 游戏发行孵化评估系统 v1.3</title>
+    <title>BOOOM 游戏发行孵化评估系统 v1.4 (Fixed)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -228,7 +228,7 @@
 <div id="loginOverlay">
     <div class="login-box">
         <div style="font-size:3rem; font-weight:900; line-height:1; letter-spacing:-2px;">BOOOM</div>
-        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v1.3</div>
+        <div style="margin-bottom:30px; font-size:0.8rem; font-weight:bold; letter-spacing:1px; color:#666;">EVALUATION SYSTEM v1.4</div>
         <input type="text" id="loginName" class="login-input" placeholder="YOUR NAME / CODE" maxlength="20">
         <button class="btn btn-primary" style="width:100%;" onclick="handleLogin()">ENTER SYSTEM</button>
     </div>
@@ -254,7 +254,7 @@
             <div style="font-weight:bold; color:#999;">NEW PROJECT</div>
         </div>
     </div>
-    <div class="footer">© BOOOM Incubation Evaluation System v1.3</div>
+    <div class="footer">© BOOOM Incubation Evaluation System v1.4</div>
 </div>
 
 <!-- 3. Main App -->
@@ -325,7 +325,7 @@
             <div><div class="comment" id="commentText">---</div></div>
         </div>
         
-        <div class="footer">© BOOOM Incubation Evaluation System v1.3</div>
+        <div class="footer">© BOOOM Incubation Evaluation System v1.4</div>
     </div>
 </div>
 
@@ -373,6 +373,12 @@
     let myScores = [null, null, null, null, null, null, null]; 
     let extraSectionVisible = false;
 
+    // --- Helper Functions ---
+    // Bug 1 Fix: Sanitize ID to prevent Firebase path issues
+    const sanitizeId = (str) => {
+        return str.trim().replace(/[/#$.\[\]]/g, "_");
+    };
+
     // --- Bind Windows Functions (Crucial for Module) ---
     
     window.handleLogin = () => {
@@ -381,7 +387,11 @@
         
         if(input === "admin") { currentUser = "管理员"; adminLevel = 1; }
         else if (input === "admin#NJBK") { currentUser = "SuperAdmin"; adminLevel = 2; }
-        else { currentUser = input; adminLevel = 0; }
+        else { 
+            // Fix 1 applied here
+            currentUser = sanitizeId(input); 
+            adminLevel = 0; 
+        }
 
         localStorage.setItem('booom_user', currentUser);
         localStorage.setItem('booom_level', adminLevel);
@@ -398,7 +408,8 @@
 
     window.createNewProject = () => {
         const name = prompt("请输入新项目名称:");
-        if(name && name.trim()) loadProject(name.trim());
+        // Fix 1 applied here
+        if(name && name.trim()) loadProject(sanitizeId(name));
     };
 
     window.goBackToDash = () => {
@@ -649,8 +660,9 @@
 
                 if(adminLevel > 0) {
                     const cp = data.priority !== undefined ? data.priority : 2;
+                    // Bug 5 Fix: Add style to force display flex
                     html += `
-                    <div class="card-admin">
+                    <div class="card-admin" style="display:flex;">
                         <span class="p-btn ${cp===0?'active':''}" onclick="setPriority('${data.id}', 0)">P0</span>
                         <span class="p-btn ${cp===1?'active':''}" onclick="setPriority('${data.id}', 1)">P1</span>
                         <span class="p-btn ${cp===2?'active':''}" onclick="setPriority('${data.id}', 2)">P2</span>
@@ -670,6 +682,13 @@
         document.getElementById('appSection').style.display = 'block';
         document.getElementById('displayProjectNameInput').value = currentProject;
         document.getElementById('tabAdmin').style.display = (adminLevel > 0) ? 'block' : 'none';
+        
+        // Bug 3 Fix: Clear inputs before loading new ones
+        document.getElementById('extra-pros').value = "";
+        document.getElementById('extra-cons').value = "";
+        document.getElementById('extra-conclusion').value = "";
+        document.getElementById('extra-questions').value = "";
+
         renderInputs();
         loadMyReview();
         listenTeamData();
@@ -724,13 +743,38 @@
         }
     }
 
+    // Bug 2 Fix: Linear Interpolation Logic
     function calculateScoreInternal(scoreArray) {
         let total = 0;
         const weights = currentMode === 'A' ? config.weightsA : config.weightsB;
+        
         scoreArray.forEach((score, i) => { 
-            const intScore = Math.round(score); const safeScore = Math.max(1, Math.min(10, intScore));
-            total += weights[i] * config.coeffs[safeScore]; 
+            let coeff = 0;
+            // Ensure score is a number
+            let val = parseFloat(score);
+            if(isNaN(val)) val = 0;
+            
+            // Clamp 1-10
+            val = Math.max(1, Math.min(10, val));
+            
+            if (Number.isInteger(val)) {
+                // Integer Logic (Classic)
+                coeff = config.coeffs[val] || 0;
+            } else {
+                // Float Logic (Linear Interpolation)
+                const low = Math.floor(val);
+                const high = Math.ceil(val);
+                const ratio = val - low;
+                
+                const cLow = config.coeffs[low] || 0;
+                const cHigh = config.coeffs[high] || 0;
+                
+                coeff = cLow + (cHigh - cLow) * ratio;
+            }
+
+            total += weights[i] * coeff;
         });
+
         let grade, color, comment;
         if (total >= 85) { grade = 'S'; color = 'var(--yellow)'; comment = '神作！天降的项目怎么被我遇到了，赶紧签！'; }
         else if (total >= 68) { grade = 'A'; color = 'var(--red)'; comment = '牛啊。虽有短板，但核心优势足以支撑项目，开撩！'; }
@@ -791,7 +835,10 @@
         let count = 0; let sums = [0,0,0,0,0,0,0];
         reviewsSnapshot.forEach(doc => {
             const s = doc.data().scores;
-            if(s && s.length === 7) { count++; s.forEach((val, i) => sums[i] += val); }
+            if(s && s.length === 7) { 
+                count++; 
+                s.forEach((val, i) => sums[i] += (typeof val === 'number' ? val : 0)); 
+            }
         });
         if(count > 0) {
             const averages = sums.map(s => s / count);
@@ -828,6 +875,8 @@
             if(r.extra.pros) textData += `优点: ${r.extra.pros}\n`;
             if(r.extra.cons) textData += `缺点: ${r.extra.cons}\n`;
             if(r.extra.conclusion) textData += `结论: ${r.extra.conclusion}\n`;
+            // Bug 4 Fix: Add questions to copy text
+            if(r.extra.questions) textData += `提问: ${r.extra.questions}\n`;
             textData += `\n`;
 
             const row = document.createElement('div');
